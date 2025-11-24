@@ -1,10 +1,13 @@
+import os
 from langchain_community.chat_models import ChatOllama
 from langchain_core.messages import HumanMessage, SystemMessage
 
 class LLMService:
     def __init__(self, model="llama3.1:8b-instruct-q4_K_S"):
         self.model_name = model
-        self.llm = ChatOllama(model=model)
+        # Use OLLAMA_HOST env var if set (for Docker), otherwise default to localhost
+        ollama_host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
+        self.llm = ChatOllama(base_url=ollama_host, model=model)
 
     def process_text(self, text: str, prompt: str = "Summarize the following text:"):
         """
