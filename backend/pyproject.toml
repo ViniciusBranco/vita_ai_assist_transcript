@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "vita-transcript-backend"
+version = "0.1.0"
+description = "Backend for Vita.AI Transcription App"
+authors = ["Vita.AI Team"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.109.0"
+uvicorn = "^0.27.0"
+sqlalchemy = "^2.0.25"
+psycopg2-binary = "^2.9.9"
+alembic = "^1.13.1"
+python-multipart = "^0.0.9"
+openai = "^1.10.0"
+langchain = "^0.1.0"
+langgraph = "^0.0.10"
+langchain-community = "^0.0.10"
+faster-whisper = "^1.0.0"
+ollama = "^0.1.6"
+torch = "^2.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
