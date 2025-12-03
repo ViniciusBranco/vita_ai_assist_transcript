@@ -3,7 +3,7 @@
 O [**Vita.AI**](http://vita.ai/) é uma solução de Inteligência Artificial Generativa local projetada para clínicas médicas e odontológicas. O sistema atua como um assistente virtual no WhatsApp, recebendo áudios de consultas, transcrevendo-os e estruturando automaticamente os dados em prontuários clínicos (Anamnese e Evolução) para revisão posterior via Interface Web.
 
 ![Status](https://img.shields.io/badge/Status-MVP%20Completed-success)
-![Stack](https://img.shields.io/badge/AI-Local%20LLM%20(Qwen%202.5:7B)-blue)
+![Stack](https://img.shields.io/badge/AI%20Agent-Local%20LLM%20(Qwen%202.5:7B)-blue)
 ![Stack](https://img.shields.io/badge/AI-Local%20TTS%20(FasterWhisper:small)-blue)
 
 [![LangChain](https://img.shields.io/badge/LangChain-1c3c3c.svg?logo=langchain&logoColor=white)](#)
