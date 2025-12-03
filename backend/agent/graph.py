@@ -7,8 +7,10 @@ from langchain_ollama import ChatOllama
 from langgraph.prebuilt import create_react_agent
 
 from services.transcription import TranscriptionService
-from agent.tools import save_anamnese, save_evolucao, handle_inquiry
+from agent.tools import save_anamnese, save_evolucao
+from agent.tools import save_anamnese, save_evolucao
 from core.audit import AgentAuditLogger
+from core.context import transcription_context
 
 # --- Configuration ---
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
@@ -20,6 +22,7 @@ transcription_service = TranscriptionService(model_size="small")
 # --- State ---
 class AgentState(TypedDict):
     audio_path: str
+    chat_id: Optional[str]
     transcribed_text: Optional[str]
     messages: List[BaseMessage]
     final_output: Optional[Any]
@@ -39,6 +42,9 @@ def transcriber_node(state: AgentState) -> AgentState:
         text = transcription_service.transcribe(audio_path)
         print(f"--- Transcription complete. First 50 chars: {text[:50]}... ---")
         
+        # Set context for tools to access
+        transcription_context.set(text)
+        
         # Convert to message for the agent
         messages = [HumanMessage(content=text)]
         return {**state, "transcribed_text": text, "messages": messages}
@@ -57,9 +63,8 @@ def agent_node(state: AgentState) -> AgentState:
     llm = ChatOllama(base_url=OLLAMA_HOST, model=MODEL_NAME)
 
     # Define Tools
-    tools = [save_anamnese, save_evolucao, handle_inquiry]
+    tools = [save_anamnese, save_evolucao]
 
-    # System Prompt
     # System Prompt
     system_prompt = """Você é um assistente médico AI especialista em estruturação de dados.
     
@@ -79,7 +84,23 @@ def agent_node(state: AgentState) -> AgentState:
     - Se houver procedimentos de hoje -> Use `save_evolucao`.
     - Se houver ambos, chame ambas as ferramentas, mas UMA VEZ CADA.
     
-    REGRA CRÍTICA: Se houver dados clínicos, você É OBRIGADO a chamar a ferramenta. Não responda com texto.
+    CASOS NÃO CLÍNICOS (Conversa, Dúvida, Ruído, Testes):
+    - Se o texto for apenas uma saudação ("Oi", "Bom dia"), uma dúvida geral, ou ruído sem dados médicos.
+    - Se for um TESTE DE SOM (ex: "Um, dois, três, testando", "Alô som", "Testando microfone").
+    - AÇÃO: NÃO CHAME NENHUMA FERRAMENTA.
+    - Apenas responda educadamente com texto final.
+    - Exemplo para teste: "Parece que este é um áudio de teste. Por favor, envie um relato clínico para eu processar."
+    - Exemplo para saudação: "Olá! Estou pronto para registrar o prontuário. Pode ditar."
+    
+    CRITÉRIO DE SEGURANÇA:
+    - Para chamar `save_anamnese` ou `save_evolucao`, o texto DEVE conter menções explícitas a:
+      - Sintomas (dor, febre, inchaço...)
+      - Doenças ou condições
+      - Dentes ou regiões da boca
+      - Procedimentos (restauração, limpeza, extração...)
+      - Medicamentos
+    
+    REGRA CRÍTICA: Se houver dados clínicos, você É OBRIGADO a chamar a ferramenta.
     """
 
     # Create React Agent (LangGraph prebuilt)

@@ -1,12 +1,14 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Body
-from typing import Dict, Any
-from sqlalchemy.orm import Session
+from typing import Dict, Any, List
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import desc
 from database import get_db
-from models import MedicalRecord
+from models import MedicalRecord, Appointment, Patient
 import shutil
 import os
 from pathlib import Path
 import uuid
+import datetime
 
 router = APIRouter()
 
@@ -79,17 +81,60 @@ async def upload_audio(file: UploadFile = File(...)):
         "llm_analysis": llm_response
     }
 
+@router.get("/medical-records/")
+def list_medical_records(db: Session = Depends(get_db)):
+    """
+    List all medical records, ordered by creation date (newest first).
+    Includes Patient Name via JOIN.
+    """
+    records = db.query(MedicalRecord).options(
+        joinedload(MedicalRecord.appointment).joinedload(Appointment.patient)
+    ).order_by(MedicalRecord.created_at.desc()).all()
+    
+    return [
+        {
+            "id": rec.id,
+            "record_type": rec.record_type,
+            "patient_name": rec.appointment.patient.name if rec.appointment and rec.appointment.patient else "Desconhecido",
+            "created_at": rec.created_at,
+            "structured_content": rec.structured_content,
+            # "full_transcription": rec.full_transcription # Optional, omitting for list view
+        }
+        for rec in records
+    ]
+
 @router.get("/medical-records/{record_id}")
 def get_medical_record(record_id: int, db: Session = Depends(get_db)):
     """
     Retrieve a specific medical record by ID.
+    Includes Patient details.
     """
-    record = db.query(MedicalRecord).filter(MedicalRecord.id == record_id).first()
+    record = db.query(MedicalRecord).options(
+        joinedload(MedicalRecord.appointment).joinedload(Appointment.patient)
+    ).filter(MedicalRecord.id == record_id).first()
+    
     if not record:
         raise HTTPException(status_code=404, detail="Medical record not found")
     
+    patient_data = None
+    if record.appointment and record.appointment.patient:
+        p = record.appointment.patient
+        age = None
+        if p.birth_date:
+            today = datetime.date.today()
+            # Calculate age
+            age = today.year - p.birth_date.year - ((today.month, today.day) < (p.birth_date.month, p.birth_date.day))
+            
+        patient_data = {
+            "id": p.id,
+            "name": p.name,
+            "phone": p.phone,
+            "age": age
+        }
+
     return {
         "id": record.id,
+        "patient": patient_data,
         "structured_content": record.structured_content,
         "full_transcription": record.full_transcription,
         "created_at": record.created_at
