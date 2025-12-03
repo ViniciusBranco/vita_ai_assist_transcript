@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.endpoints import router as api_router
+from api.webhook import router as webhook_router
+# Import graph to trigger model preloading
+import agent.graph
 
 app = FastAPI(title="Vita.AI Transcript API")
 
@@ -18,6 +21,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api")
+app.include_router(webhook_router, prefix="/api")
 
 @app.get("/")
 def read_root():

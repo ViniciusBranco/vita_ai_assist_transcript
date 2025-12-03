@@ -67,3 +67,8 @@ AICHECKPOINT.md
 OGG_TEST_RESULTS.md
 OGG_SUPPORT.md
 OGG_IMPLEMENTATION_SUMMARY.md
+backend/temp/*
+!backend/temp/.gitkeep
+postgres_data/
+waha_data/
+ollama_data

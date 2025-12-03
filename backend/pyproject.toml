@@ -7,19 +7,25 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.109.0"
-uvicorn = "^0.27.0"
-sqlalchemy = "^2.0.25"
-psycopg2-binary = "^2.9.9"
-alembic = "^1.13.1"
-python-multipart = "^0.0.9"
-openai = "^1.10.0"
-langchain = "^0.1.0"
-langgraph = "^0.0.10"
-langchain-community = "^0.0.10"
-faster-whisper = "^1.0.0"
-ollama = "^0.1.6"
-torch = "^2.0.0"
+fastapi = "^0.115.0"
+uvicorn = "^0.32.0"
+# Drivers de banco de dados
+sqlalchemy = "^2.0.36"
+psycopg2-binary = "^2.9.10"
+alembic = "^1.14.0"
+python-multipart = "^0.0.17"
+
+# --- AI Stack (Geração 0.3.x - Atualizada) ---
+langchain = "^0.3.0"
+langchain-community = "^0.3.0"
+langchain-core = "^0.3.0"
+langchain-ollama = "^0.2.0"
+langgraph = "^0.2.50"
+
+# --- Audio (CPU Optimized) ---
+# faster-whisper já traz suas deps (ctranslate2, tokenizers)
+# Não precisamos declarar 'torch' explicitamente aqui se não o importamos no código.
+faster-whisper = "^1.1.0"
 
 [build-system]
 requires = ["poetry-core"]

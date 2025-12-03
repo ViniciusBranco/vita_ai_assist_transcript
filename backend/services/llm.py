@@ -9,12 +9,13 @@ class LLMService:
         ollama_host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
         self.llm = ChatOllama(base_url=ollama_host, model=model)
 
-    def process_text(self, text: str, prompt: str = "Summarize the following text:"):
+    def process_text(self, text: str, prompt: str):
         """
         Process the transcribed text using the LLM.
         """
+
         messages = [
-            SystemMessage(content="You are a helpful assistant for a dental clinic."),
+            SystemMessage(content="Você é um assistente de um clínico odontológico e fala Português do Brasil fluentemente."),
             HumanMessage(content=f"{prompt}\n\n{text}")
         ]
         

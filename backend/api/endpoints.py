@@ -1,4 +1,8 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Body
+from typing import Dict, Any
+from sqlalchemy.orm import Session
+from database import get_db
+from models import MedicalRecord
 import shutil
 import os
 from pathlib import Path
@@ -55,7 +59,13 @@ async def upload_audio(file: UploadFile = File(...)):
 
     # 2. Process with LLM
     try:
-        llm_response = llm_service.process_text(transcription_text)
+        prompt = """Você recebeu um texto pós-consulta odontológica, transcrito diretamente do áudio. 
+        Seu objetivo é corrigir eventuais erros de português do Brasil e acentuação.
+        Mantenha o conteúdo o mais próximo possível do texto original. 
+        Não dê instruções ou explicações adicionais.
+        Forneça apenas o texto corrigido.
+        """
+        llm_response = llm_service.process_text(transcription_text, prompt)
     except Exception as e:
         llm_response = f"LLM processing failed: {e}"
 
@@ -67,4 +77,53 @@ async def upload_audio(file: UploadFile = File(...)):
         "file_path": str(file_path),
         "transcription": transcription_text,
         "llm_analysis": llm_response
+    }
+
+@router.get("/medical-records/{record_id}")
+def get_medical_record(record_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieve a specific medical record by ID.
+    """
+    record = db.query(MedicalRecord).filter(MedicalRecord.id == record_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Medical record not found")
+    
+    return {
+        "id": record.id,
+        "structured_content": record.structured_content,
+        "full_transcription": record.full_transcription,
+        "created_at": record.created_at
+    }
+
+@router.put("/medical-records/{record_id}")
+def update_medical_record(
+    record_id: int, 
+    payload: Dict[str, Any] = Body(...), 
+    db: Session = Depends(get_db)
+):
+    """
+    Update the structured content of a medical record.
+    Used when the doctor edits the record in the frontend.
+    """
+    record = db.query(MedicalRecord).filter(MedicalRecord.id == record_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Medical record not found")
+    
+    # Update structured content
+    # The frontend sends the updated JSON structure
+    record.structured_content = payload
+    
+    try:
+        db.commit()
+        db.refresh(record)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update record: {str(e)}")
+        
+    return {
+        "id": record.id,
+        "structured_content": record.structured_content,
+        "full_transcription": record.full_transcription,
+        "created_at": record.created_at,
+        "status": "updated"
     }
