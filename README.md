@@ -4,7 +4,7 @@ O [**Vita.AI**](http://vita.ai/) é uma solução de Inteligência Artificial Ge
 
 ![Status](https://img.shields.io/badge/Status-MVP%20Completed-success)
 
-![Stack](https://img.shields.io/badge/AI-Local%20LLM%20(Qwen)-blue)
+![Stack](https://img.shields.io/badge/AI-Local%20LLM%20(Qwen)-blue)(https://img.shields.io/badge/LangChain-ffffff?logo=langchain&logoColor=green)
 
 ## 🚀 Funcionalidades Principais
 
