@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, Calendar, Activity, FileText, Pencil, Check, X } from 'lucide-react';
 
 interface PatientHeaderProps {
-    patientId: number;
+    patientId?: number;
     patientName?: string;
     recordType: 'anamnese' | 'evolucao' | 'atendimento';
     recordId: number;

@@ -95,7 +95,7 @@ export default function PatientListScreen() {
 
                             <button
                                 onClick={() => navigate(`/patients/${patient.id}/full-history`)}
-                                className="w-full py-2 px-4 bg-slate-50 text-slate-600 rounded-xl transition-colors text-sm font-medium flex items-center justify-center gap-2 group-hover:bg-blue-600 group-hover:text-white hover:!bg-blue-700 hover:text-white"
+                                className="w-full py-2 px-4 bg-slate-50 text-slate-600 rounded-xl transition-colors text-sm font-medium flex items-center justify-center gap-2 group-hover:bg-blue-600 group-hover:text-white hover:!bg-blue-700 hover:text-white cursor-pointer"
                             >
                                 Ver Prontuário
                                 <ArrowRight className="w-4 h-4" />

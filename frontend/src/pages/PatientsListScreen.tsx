@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, User, Phone, FileText } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Phone } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Layout } from '../components/Layout';
 
@@ -125,11 +125,12 @@ export default function PatientsListScreen() {
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button
                                                         onClick={() => navigate(`/patients/${patient.id}`)}
-                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                                        title="Ver prontuário"
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
-                                                    <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                                    <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer">
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>

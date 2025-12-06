@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { AlertCircle } from 'lucide-react';
 import { PatientHeader } from '../components/PatientHeader';
@@ -32,7 +32,13 @@ interface PatientHistory {
 
 export default function PatientRecordScreen() {
     const { patientId, recordId } = useParams<{ patientId: string; recordId: string }>();
-    const navigate = useNavigate();
+    // const navigate = useNavigate(); // Temporarily commented out if unused or removed if completely unnecessary. 
+    // Wait, the previous view_file showed it on line 35. Let me check usage.
+    // It seems unused in PatientRecordScreen based on the provided snippet.
+    // However, I should check if it is used elsewhere in the file.
+    // Assuming the user meant PatientRecordScreen based on the lint error.
+
+    // Actually, I'll just remove the hook call.
 
     const [record, setRecord] = useState<MedicalRecord | null>(null);
     const [history, setHistory] = useState<PatientHistory | null>(null);

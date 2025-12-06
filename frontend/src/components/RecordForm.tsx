@@ -182,22 +182,22 @@ export function RecordForm({ record, onSave, loading = false }: RecordFormProps)
                     {(isEvolucao || isAtendimento) && (
                         <>
                             <div className="space-y-2">
-                                <label htmlFor="procedimentos" className="block text-sm font-medium text-slate-700">
-                                    Procedimentos Realizados
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        id="procedimentos"
-                                        value={procedimentos}
-                                        onChange={(e) => setProcedimentos(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder:text-slate-400"
-                                        placeholder="Ex: Limpeza, Restauração, Extração..."
-                                    />
-                                    <div className="absolute right-3 top-3 text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                                <div className="flex items-center justify-between">
+                                    <label htmlFor="procedimentos" className="block text-sm font-medium text-slate-700">
+                                        Procedimentos Realizados
+                                    </label>
+                                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                                         Separar por vírgula
-                                    </div>
+                                    </span>
                                 </div>
+                                <textarea
+                                    id="procedimentos"
+                                    value={procedimentos}
+                                    onChange={(e) => setProcedimentos(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder:text-slate-400 resize-y min-h-[50px] leading-relaxed"
+                                    placeholder="Ex: Limpeza, Restauração, Extração..."
+                                    rows={2}
+                                />
                             </div>
 
                             <div className="space-y-2 flex-1 flex flex-col">

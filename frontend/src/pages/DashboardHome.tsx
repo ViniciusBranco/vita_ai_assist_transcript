@@ -25,8 +25,24 @@ export default function DashboardHome() {
                 const today = new Date().toISOString().split('T')[0];
 
                 const totalToday = records.filter(r => r.created_at.startsWith(today)).length;
-                const totalAnamneses = records.filter(r => r.record_type === 'anamnese').length;
-                const totalEvolucoes = records.filter(r => r.record_type === 'evolucao').length;
+
+                // Logic based on dynamic 'category' (structured_content.categoria)
+                // Fallback to record_type if category is missing (legacy records)
+                const totalAnamneses = records.filter(r => {
+                    const sc = (r as any).structured_content;
+                    const cat = sc?.categoria || sc?.data?.categoria;
+
+                    if (cat) return cat === 'anamnese' || cat === 'completo';
+                    return r.record_type === 'anamnese';
+                }).length;
+
+                const totalEvolucoes = records.filter(r => {
+                    const sc = (r as any).structured_content;
+                    const cat = sc?.categoria || sc?.data?.categoria;
+
+                    if (cat) return cat === 'evolucao' || cat === 'completo';
+                    return r.record_type === 'evolucao';
+                }).length;
 
                 setStats({
                     totalToday,

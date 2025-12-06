@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { Activity, FileText, Calendar, ChevronRight } from 'lucide-react';
+import { getRecordSummary } from '../utils/recordUtils';
 
 interface TimelineEvent {
     id: number;
@@ -26,6 +27,27 @@ export function PatientTimeline({ events, patientId }: PatientTimelineProps) {
             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4">
                 {events.map((event, index) => {
                     const isCurrent = Number(currentRecordId) === event.id;
+
+                    // Determine styling based on category or record_type legacy
+                    const category = (event as any).structured_content?.categoria;
+                    let badgeColor = 'bg-blue-100 text-blue-600'; // Default Blue
+                    let Icon = Activity;
+                    let label = 'Atendimento';
+
+                    if (category === 'anamnese' || (!category && event.record_type === 'anamnese')) {
+                        badgeColor = 'bg-emerald-100 text-emerald-600';
+                        Icon = FileText;
+                        label = 'Anamnese';
+                    } else if (category === 'evolucao' || (!category && event.record_type === 'evolucao')) {
+                        badgeColor = 'bg-blue-100 text-blue-600';
+                        Icon = Activity;
+                        label = 'Evolução';
+                    } else if (category === 'completo') {
+                        badgeColor = 'bg-purple-100 text-purple-600';
+                        Icon = Activity; // Or Check
+                        label = 'Completo';
+                    }
+
                     return (
                         <div key={event.id} className="relative pl-4">
                             {/* Vertical Line */}
@@ -41,22 +63,14 @@ export function PatientTimeline({ events, patientId }: PatientTimelineProps) {
                                     ? 'bg-yellow-50 border-yellow-200 shadow-sm'
                                     : 'bg-white border-slate-100 hover:border-blue-200 hover:shadow-sm'
                                     }`}>
-                                    <div className={`p-2 rounded-lg flex-shrink-0 ${event.record_type === 'anamnese'
-                                        ? 'bg-emerald-100 text-emerald-600'
-                                        : 'bg-blue-100 text-blue-600'
-                                        }`}>
-                                        {event.record_type === 'anamnese' ? (
-                                            <FileText className="w-4 h-4" />
-                                        ) : (
-                                            <Activity className="w-4 h-4" />
-                                        )}
+                                    <div className={`p-2 rounded-lg flex-shrink-0 ${badgeColor}`}>
+                                        <Icon className="w-4 h-4" />
                                     </div>
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-1">
-                                            <span className={`text-xs font-semibold uppercase tracking-wider ${event.record_type === 'anamnese' ? 'text-emerald-600' : 'text-blue-600'
-                                                }`}>
-                                                {event.record_type}
+                                            <span className={`text-xs font-semibold uppercase tracking-wider ${badgeColor.split(' ')[1]}`}>
+                                                {label}
                                             </span>
                                             <span className="text-xs text-slate-400 flex items-center gap-1">
                                                 <Calendar className="w-3 h-3" />
@@ -64,7 +78,7 @@ export function PatientTimeline({ events, patientId }: PatientTimelineProps) {
                                             </span>
                                         </div>
                                         <p className={`text-sm line-clamp-2 ${isCurrent ? 'text-slate-700 font-medium' : 'text-slate-600'}`}>
-                                            {event.summary || 'Sem resumo disponível.'}
+                                            {getRecordSummary(event)}
                                         </p>
                                     </div>
 

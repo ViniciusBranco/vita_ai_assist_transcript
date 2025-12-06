@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { ArrowLeft, Calendar, FileText, User } from 'lucide-react';
+import { ArrowLeft, Calendar, FileText, User, ChevronRight } from 'lucide-react';
+import { getRecordSummary } from '../utils/recordUtils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -112,39 +113,64 @@ export default function PatientHistoryScreen() {
                     </div>
                 ) : (
                     <div className="relative border-l-2 border-slate-100 ml-4 space-y-8 pb-8">
-                        {history.map((record) => (
-                            <div key={record.id} className="relative pl-8 group">
-                                {/* Timeline Dot */}
-                                <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-white shadow-sm ${record.record_type === 'anamnese' ? 'bg-purple-500' : 'bg-blue-500'
-                                    }`} />
+                        {history.map((record) => {
+                            // Logic to unify category display
+                            const category = record.structured_content?.categoria;
+                            let badgeClass = 'bg-blue-50 text-blue-600'; // Default Blue (Evolução/Atendimento)
+                            let dotClass = 'bg-blue-500';
+                            let label = 'Atendimento';
 
-                                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5 hover:shadow-md transition-shadow cursor-pointer"
-                                    onClick={() => navigate(`/patient/${patient.id}/record/${record.id}`)}>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${record.record_type === 'anamnese'
-                                                ? 'bg-purple-50 text-purple-600'
-                                                : 'bg-blue-50 text-blue-600'
-                                            }`}>
-                                            {record.record_type}
-                                        </span>
-                                        <div className="flex items-center gap-2 text-sm text-slate-400">
-                                            <Calendar className="w-4 h-4" />
-                                            {format(new Date(record.date), "d 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+                            if (category === 'anamnese' || (!category && record.record_type === 'anamnese')) {
+                                badgeClass = 'bg-emerald-50 text-emerald-600'; // Green
+                                dotClass = 'bg-emerald-500';
+                                label = 'Anamnese';
+                            } else if (category === 'evolucao' || (!category && record.record_type === 'evolucao')) {
+                                badgeClass = 'bg-blue-50 text-blue-600'; // Blue
+                                dotClass = 'bg-blue-500';
+                                label = 'Evolução';
+                            } else if (category === 'completo') {
+                                badgeClass = 'bg-purple-50 text-purple-600'; // Purple
+                                dotClass = 'bg-purple-500';
+                                label = 'Completo';
+                            }
+
+                            // Logic to extract summary content
+                            const contentSummary = getRecordSummary(record);
+
+                            return (
+                                <div key={record.id} className="relative pl-8 group">
+                                    {/* Timeline Dot */}
+                                    <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-white shadow-sm ${dotClass}`} />
+
+                                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5 hover:shadow-md transition-shadow cursor-pointer"
+                                        onClick={() => navigate(`/patient/${patient.id}/record/${record.id}`)}>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${badgeClass}`}>
+                                                {label}
+                                            </span>
+                                            <div className="flex items-center gap-2 text-sm text-slate-400">
+                                                <Calendar className="w-4 h-4" />
+                                                {format(new Date(record.date), "d 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+                                            </div>
+                                        </div>
+
+                                        {/* Main Summary Content - Replaces empty area */}
+                                        <div className="mb-2 min-h-[40px]">
+                                            <p className="text-slate-700 font-medium leading-relaxed">
+                                                {contentSummary}
+                                            </p>
+                                        </div>
+
+                                        <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-end">
+                                            <div className="flex items-center gap-1 text-sm font-bold text-blue-600 bg-blue-50/50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-all group/btn">
+                                                Ver Detalhes
+                                                <ChevronRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <p className="text-slate-700 leading-relaxed font-medium">
-                                        {record.summary}
-                                    </p>
-
-                                    <div className="mt-4 pt-4 border-t border-slate-50 flex justify-end">
-                                        <span className="text-sm font-medium text-blue-600 group-hover:underline">
-                                            Ver Detalhes &rarr;
-                                        </span>
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>

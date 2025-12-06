@@ -5,12 +5,13 @@ import { FileText, Activity, Clock, ChevronRight, Search } from 'lucide-react';
 
 interface MedicalRecordSummary {
     id: number;
-    record_type: 'anamnese' | 'evolucao';
+    record_type: 'anamnese' | 'evolucao' | 'atendimento';
     created_at: string;
     patient_name?: string;
     patient_id?: number;
     structured_content: {
         paciente?: string;
+        categoria?: string;
         [key: string]: any;
     };
 }
@@ -68,44 +69,63 @@ export default function HistoryScreen() {
                         {searchTerm ? 'Nenhum paciente encontrado com esse nome.' : 'Nenhum prontuário registrado.'}
                     </div>
                 ) : (
-                    filteredRecords.map((record) => (
-                        <Link
-                            key={record.id}
-                            to={record.patient_id ? `/patient/${record.patient_id}/record/${record.id}` : `/record/${record.id}`}
-                            className="group bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-200 transition-all flex items-center justify-between"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-xl ${record.record_type === 'anamnese'
-                                        ? 'bg-emerald-100 text-emerald-600'
-                                        : 'bg-blue-100 text-blue-600'
-                                    }`}>
-                                    {record.record_type === 'anamnese' ? (
-                                        <FileText className="w-5 h-5" />
-                                    ) : (
-                                        <Activity className="w-5 h-5" />
-                                    )}
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                                            #{record.id}
-                                        </span>
-                                        <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
-                                            <Clock className="w-3 h-3" />
-                                            {new Date(record.created_at).toLocaleDateString('pt-BR')}
-                                        </span>
-                                    </div>
-                                    <h3 className="font-semibold text-slate-900">
-                                        {record.patient_name || record.structured_content?.paciente || 'Paciente não identificado'}
-                                    </h3>
-                                </div>
-                            </div>
+                    filteredRecords.map((record) => {
+                        // Determine visual style based on category
+                        const category = record.structured_content?.categoria;
+                        let badgeClass = 'bg-blue-100 text-blue-600';
+                        let Icon = Activity;
+                        let label = 'Atendimento';
 
-                            <div className="text-slate-300 group-hover:text-blue-500 transition-colors">
-                                <ChevronRight className="w-5 h-5" />
-                            </div>
-                        </Link>
-                    ))
+                        if (category === 'anamnese' || (!category && record.record_type === 'anamnese')) {
+                            badgeClass = 'bg-emerald-100 text-emerald-600';
+                            Icon = FileText;
+                            label = 'Anamnese';
+                        } else if (category === 'evolucao' || (!category && record.record_type === 'evolucao')) {
+                            badgeClass = 'bg-blue-100 text-blue-600';
+                            Icon = Activity;
+                            label = 'Evolução';
+                        } else if (category === 'completo') {
+                            badgeClass = 'bg-purple-100 text-purple-600';
+                            Icon = Activity;
+                            label = 'Completo';
+                        }
+
+                        return (
+                            <Link
+                                key={record.id}
+                                to={record.patient_id ? `/patient/${record.patient_id}/record/${record.id}` : `/record/${record.id}`}
+                                className="group bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-200 transition-all flex items-center justify-between"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-3 rounded-xl ${badgeClass}`}>
+                                        <Icon className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                #{record.id}
+                                            </span>
+                                            <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
+                                                <Clock className="w-3 h-3" />
+                                                {new Date(record.created_at).toLocaleDateString('pt-BR')}
+                                            </span>
+                                            {/* Tag Label Added Here */}
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${badgeClass}`}>
+                                                {label}
+                                            </span>
+                                        </div>
+                                        <h3 className="font-semibold text-slate-900">
+                                            {record.patient_name || record.structured_content?.paciente || 'Paciente não identificado'}
+                                        </h3>
+                                    </div>
+                                </div>
+
+                                <div className="text-slate-300 group-hover:text-blue-500 transition-colors">
+                                    <ChevronRight className="w-5 h-5" />
+                                </div>
+                            </Link>
+                        );
+                    })
                 )}
             </div>
         </div>
