@@ -4,6 +4,10 @@ import DashboardHome from './pages/DashboardHome';
 import UploadScreen from './pages/UploadScreen';
 import HistoryScreen from './pages/HistoryScreen';
 import RecordReviewScreen from './pages/RecordReviewScreen';
+import PatientRecordScreen from './pages/PatientRecordScreen';
+import PatientListScreen from './pages/PatientListScreen';
+import PatientEditScreen from './pages/PatientEditScreen';
+import PatientHistoryScreen from './pages/PatientHistoryScreen';
 
 function App() {
   return (
@@ -14,6 +18,10 @@ function App() {
           <Route path="/upload" element={<UploadScreen />} />
           <Route path="/history" element={<HistoryScreen />} />
           <Route path="/record/:id" element={<RecordReviewScreen />} />
+          <Route path="/patient/:patientId/record/:recordId" element={<PatientRecordScreen />} />
+          <Route path="/patients" element={<PatientListScreen />} />
+          <Route path="/patients/:id" element={<PatientEditScreen />} />
+          <Route path="/patients/:id/full-history" element={<PatientHistoryScreen />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -9,7 +9,8 @@ class Patient(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    phone = Column(String, unique=True, index=True)
+    cpf = Column(String, unique=True, index=True, nullable=True) # New CPF field
+    phone = Column(String, index=True, nullable=True) # Phone no longer unique
     birth_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     

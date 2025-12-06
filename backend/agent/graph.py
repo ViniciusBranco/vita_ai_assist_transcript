@@ -7,8 +7,7 @@ from langchain_ollama import ChatOllama
 from langgraph.prebuilt import create_react_agent
 
 from services.transcription import TranscriptionService
-from agent.tools import save_anamnese, save_evolucao
-from agent.tools import save_anamnese, save_evolucao
+from agent.tools import save_atendimento
 from core.audit import AgentAuditLogger
 from core.context import transcription_context
 
@@ -17,7 +16,7 @@ OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
 MODEL_NAME = os.getenv("OLLAMA_MODEL", "llama3.2")
 
 # --- Services ---
-transcription_service = TranscriptionService(model_size="small")
+transcription_service = TranscriptionService(model_size="medium")
 
 # --- State ---
 class AgentState(TypedDict):
@@ -62,55 +61,52 @@ def agent_node(state: AgentState) -> AgentState:
     # Initialize Model
     llm = ChatOllama(base_url=OLLAMA_HOST, model=MODEL_NAME)
 
-    # Define Tools
-    tools = [save_anamnese, save_evolucao]
+    # Define Tools - ONLY ONE NOW
+    tools = [save_atendimento]
 
     # System Prompt
-    system_prompt = """Você é um assistente médico AI especialista em estruturação de dados.
-    
-    SUA MISSÃO:
-    1. Ler a transcrição COMPLETA primeiro.
-    2. Identificar TODOS os procedimentos realizados e TODAS as observações.
-    3. Identificar se há histórico clínico (Anamnese) ou procedimentos atuais (Evolução).
-    
-    AGREGAÇÃO OBRIGATÓRIA:
-    - NÃO chame a ferramenta repetidamente para cada frase.
-    - Agrupe TODOS os procedimentos em uma ÚNICA lista e chame `save_evolucao` UMA VEZ.
-    - Exemplo ERRADO: Chamar `save_evolucao` para "Anestesia", depois chamar de novo para "Restauração".
-    - Exemplo CORRETO: Chamar `save_evolucao` uma vez com procedimentos=["Anestesia", "Restauração"].
-    
-    SEPARAÇÃO DE INTENÇÃO:
-    - Se houver histórico antigo (queixa, doença prévia) -> Use `save_anamnese`.
-    - Se houver procedimentos de hoje -> Use `save_evolucao`.
-    - Se houver ambos, chame ambas as ferramentas, mas UMA VEZ CADA.
-    
-    CASOS NÃO CLÍNICOS (Conversa, Dúvida, Ruído, Testes):
-    - Se o texto for apenas uma saudação ("Oi", "Bom dia"), uma dúvida geral, ou ruído sem dados médicos.
-    - Se for um TESTE DE SOM (ex: "Um, dois, três, testando", "Alô som", "Testando microfone").
-    - AÇÃO: NÃO CHAME NENHUMA FERRAMENTA.
-    - Apenas responda educadamente com texto final.
-    - Exemplo para teste: "Parece que este é um áudio de teste. Por favor, envie um relato clínico para eu processar."
-    - Exemplo para saudação: "Olá! Estou pronto para registrar o prontuário. Pode ditar."
-    
-    CRITÉRIO DE SEGURANÇA:
-    - Para chamar `save_anamnese` ou `save_evolucao`, o texto DEVE conter menções explícitas a:
-      - Sintomas (dor, febre, inchaço...)
-      - Doenças ou condições
-      - Dentes ou regiões da boca
-      - Procedimentos (restauração, limpeza, extração...)
-      - Medicamentos
-    
-    REGRA CRÍTICA: Se houver dados clínicos, você É OBRIGADO a chamar a ferramenta.
+    # System Prompt
+    system_prompt = """You are an expert AI medical assistant specializing in clinical data structuring.
+
+    YOUR MISSION:
+    1. Analyze the audio transcription.
+    2. Classify the attendance type (`anamnese`, `evolucao`, or `completo`).
+    3. Extract ALL clinical data, strictly separating pre-existing history from current actions.
+    4. Call the tool `save_atendimento` EXACTLY ONCE.
+
+    ⚠️ CRITICAL RULES (DO NOT IGNORE):
+    1. **OUTPUT LANGUAGE:** All extracted content values (names, observations, procedures, complaints) MUST remain in **Brazilian Portuguese**.
+    2. **SINGLE EXECUTION:** After calling `save_atendimento` successfully, your task is COMPLETE. Reply with a short confirmation to the user and STOP. DO NOT call the tool again.
+    3. **CPF EXTRACTION:** Look obsessively for 11 digits or the pattern XXX.XXX.XXX-XX. This is vital for patient identification. Extract it to `paciente.cpf`.
+
+    CLINICAL DEFINITIONS:
+    - **MEDICAL HISTORY (`anamnese.historico_medico`):** Refers to PRE-EXISTING conditions (Diabetes, Asthma, Hypertension), allergies, past surgeries, or continuous medication. Do NOT include what was done today.
+    - **CHIEF COMPLAINT (`anamnese.queixa_principal`):** The reason for the CURRENT visit (e.g., "Pain in tooth 36", "Broken filling").
+    - **EVOLUTION (`evolucao`):** Everything performed or observed TODAY.
+        - **`procedimentos` (List):** Extract distinct technical actions here (e.g., "Anestesia", "Restauração", "Sutura"). Do NOT leave them buried in the text.
+        - **`observacoes`:** Clinical findings and narrative of the visit.
+
+    EXAMPLE OF EXPECTED JSON STRUCTURE (Tool Input):
+    {
+    "data": {
+        "paciente": { "nome": "João Silva", "cpf": "123.456.789-00" },
+        "categoria": "completo",
+        "anamnese": {
+        "queixa_principal": "Dor no dente 36",
+        "historico_medico": "Diabético, Alérgico a Penicilina"
+        },
+        "evolucao": {
+        "observacoes": "Paciente com dor aguda. Realizado teste de vitalidade positivo.",
+        "procedimentos": ["Teste de Vitalidade", "Abertura Coronária", "Curativo de Demora"]
+        }
+    }
+    }
     """
 
-    # Create React Agent (LangGraph prebuilt)
-    # This creates a compiled graph that handles the tool calling loop
+    # Create React Agent
     agent_runnable = create_react_agent(llm, tools, state_modifier=system_prompt)
 
     try:
-        # Invoke Agent
-        # The input to the react agent is the state (or dict with messages)
-        # It returns the final state
         print("--- Invoking Agent Runnable ---")
         
         # Inject Audit Logger
@@ -122,7 +118,6 @@ def agent_node(state: AgentState) -> AgentState:
         )
         print("--- Agent Runnable Finished ---")
         
-        # result["messages"] contains the full history including tool calls and final response
         return {**state, "messages": result["messages"], "final_output": result}
     except Exception as e:
         print(f"!!! Agent execution failed: {e}")

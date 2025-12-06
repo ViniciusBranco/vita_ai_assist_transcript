@@ -1,10 +1,11 @@
-# Vita.AI - Assistente de Prontuário Inteligente
+# Vita.AI - Assistente de Prontuário Inteligente 🦷🤖
 
-O **Vita.AI** é uma plataforma de Inteligência Artificial Generativa para clínicas médicas e odontológicas. O sistema atua como um assistente virtual no WhatsApp, recebendo áudios de consultas, transcrevendo-os e estruturando automaticamente os dados em prontuários clínicos (Anamnese e Evolução) para revisão posterior via Interface Web.
+> **Transforme áudios de consulta em prontuários estruturados automaticamente via WhatsApp.**
 
+O **Vita.AI** é uma plataforma SaaS *Open Source* que utiliza Inteligência Artificial Generativa Local para revolucionar a rotina de dentistas e médicos. O sistema escuta, transcreve, entende e organiza o atendimento clínico em segundos, garantindo segurança de dados e agilidade.
 
 ![Status](https://img.shields.io/badge/Status-MVP%20Completed-success)
-![Stack](https://img.shields.io/badge/AI%20Agent-Local%20LLM%20(Qwen%202.5:7B)-blue)
+![Stack](https://img.shields.io/badge/AI%20Agent-Local%20LLM%20(Qwen%202.5:7B)-violet)
 ![Stack](https://img.shields.io/badge/AI-Local%20TTS%20(FasterWhisper:small)-blue)
 
 [![LangChain](https://img.shields.io/badge/LangChain-1c3c3c.svg?logo=langchain&logoColor=white)](#)
@@ -20,40 +21,69 @@ O **Vita.AI** é uma plataforma de Inteligência Artificial Generativa para clí
 
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 
-## 🚀 Funcionalidades (MVP)
+## ✨ Funcionalidades Principais
 
-- **Transcrição de Voz (ASR):** Motor *Faster-Whisper* rodando localmente (CPU/GPU) para alta fidelidade em português.
-- **Inteligência Clínica (Agentic AI):** Agente *LangGraph* com modelo *Qwen 2.5 7B* que analisa o texto, separa intenções ("Anamnese" vs "Evolução") e extrai dados estruturados.
-- **Integração WhatsApp:** Gateway *WAHA (WhatsApp HTTP API)* para receber áudios e enviar confirmações diretamente no chat.
-- **Persistência:** Banco de dados *PostgreSQL* com suporte a JSONB para schemas flexíveis.
-- **Web Interface:** Frontend *React + Tailwind v4* para revisão humana e edição dos prontuários gerados.
+* 🎙️ **Transcrição de Alta Fidelidade:** Motor *Faster-Whisper* otimizado para português brasileiro e termos técnicos odontológicos.
+* 🧠 **Inteligência Clínica:** Agente *LangGraph* que classifica o atendimento (Anamnese/Evolução), extrai sintomas, procedimentos e medicamentos.
+* 🆔 **Gestão de Identidade:** Detecção automática de CPF e Nome para criação ou atualização de pacientes.
+* 📱 **Integração WhatsApp:** Envie o áudio no app e receba a confirmação instantânea.
+* 💻 **Dashboard Profissional:** Interface React para revisão, edição e gestão de histórico clínico (Timeline).
 
-## 🏗️ Arquitetura Técnica
+## 🏗️ Arquitetura (Microsserviços)
 
-O projeto opera em microsserviços via Docker Compose:
+O projeto roda inteiramente em containers Docker, garantindo portabilidade e fácil deploy.
 
-| Serviço | Tecnologia | Função |
-|---------|------------|--------|
-| **Backend** | FastAPI / Python 3.11 | Orquestração, API REST e Agentes LangChain. |
-| **Frontend** | React / Vite | Interface de usuário para médicos. |
-| **AI Engine** | Ollama | Servidor de inferência para o LLM (Qwen 2.5). |
-| **Database** | PostgreSQL 15 | Armazenamento de dados relacionais e documentos. |
-| **Gateway** | WAHA (Core) | Conexão via socket com a rede do WhatsApp. |
+1.  **Backend (FastAPI):** API REST, SQLAlchemy (Postgres), Alembic (Migrações) e LangChain (Lógica de Agente).
+2.  **Frontend (React + Vite):** SPA moderna com TailwindCSS v4, Axios e Lucide Icons.
+3.  **AI Engine (Ollama):** Servidor de inferência local rodando Qwen 2.5 7B (GPU recommended).
+4.  **Database (PostgreSQL):** Persistência relacional robusta com JSONB para flexibilidade de schema.
+5.  **WhatsApp Gateway (WAHA):** Conexão via socket com a API do WhatsApp.
 
-## 🛠️ Requisitos de Hardware
+## 🚀 Como Rodar (Local)
 
-- **GPU:** NVIDIA (Sugerido: GTX 1060 6GB ou superior / T4 em Cloud).
-- **RAM:** Mínimo 16GB (Recomendado 32GB para rodar Ollama + Docker confortavelmente).
-- **Docker:** Docker Desktop ou Engine com suporte a NVIDIA Container Toolkit.
+### Pré-requisitos
+* Docker & Docker Compose
+* NVIDIA GPU (Recomendado para performance de transcrição/LLM)
+* 16GB+ RAM
 
-## 📦 Instalação e Execução
+### Passo a Passo
 
-### 1. Configuração Inicial
+1.  **Clone e Configure:**
+    ```bash
+    git clone [https://github.com/seu-usuario/vita-ai.git](https://github.com/seu-usuario/vita-ai.git)
+    cp .env.example .env
+    # Ajuste WAHA_API_KEY e configurações de banco no .env
+    ```
 
-Clone o repositório e configure as variáveis de ambiente:
+2.  **Inicie a Infraestrutura:**
+    ```bash
+    docker compose up -d --build
+    ```
 
-```bash
-# Crie o arquivo .env na raiz
-WAHA_API_KEY=sua_chave_segura
-OLLAMA_MODEL=qwen2.5:7b
-OLLAMA_HOST=[http://host.docker.internal:11434](http://host.docker.internal:11434)
+3.  **Conecte o WhatsApp:**
+    * Acesse `http://localhost:3000/dashboard`
+    * Escaneie o QR Code com seu WhatsApp.
+
+4.  **Acesse o Sistema:**
+    * Frontend: `http://localhost:5173`
+    * Backend Docs: `http://localhost:8000/docs`
+
+## 🧪 Como Testar (Simulação)
+
+Para validar sem conectar um celular real:
+
+1.  Coloque um arquivo de áudio (`teste.ogg`) na pasta raiz.
+2.  Inicie o servidor de arquivos local: `python -m http.server 9000`.
+3.  Execute o script de teste:
+    ```bash
+    python test_webhook_simulation.py teste.ogg
+    ```
+4.  Verifique o resultado no Dashboard.
+
+## 🛡️ Segurança e Privacidade
+
+* **100% Local:** Nenhum dado de áudio ou texto sai do seu servidor para APIs de terceiros (OpenAI/Google).
+* **Dados Estruturados:** CPF e dados sensíveis são tratados com rigor no banco de dados.
+
+---
+*Desenvolvido com 💙 e IA.*

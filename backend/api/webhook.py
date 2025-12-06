@@ -165,8 +165,9 @@ async def handle_audio_message(message_id: str, media_url: str = None, chat_id: 
                 ids_to_update = []
                 for msg in messages:
                     if hasattr(msg, 'content') and isinstance(msg.content, str):
-                        # Regex to find "ID: <number>"
-                        matches = re.findall(r"ID:\s*(\d+)", msg.content)
+                        # Regex to find "ID do Registro: <number>" or variations
+                        # Matches: "ID: 123", "ID do Registro: 123", "Registro: 123"
+                        matches = re.findall(r"(?:ID(?: do Registro)?|Registro)[:\s]+(\d+)", msg.content, re.IGNORECASE)
                         for m in matches:
                             ids_to_update.append(int(m))
                 
@@ -176,14 +177,17 @@ async def handle_audio_message(message_id: str, media_url: str = None, chat_id: 
                     def update_db():
                         try:
                             db = SessionLocal()
-                            db.query(MedicalRecord).filter(MedicalRecord.id.in_(ids_to_update)).update(
-                                {MedicalRecord.full_transcription: transcribed_text},
-                                synchronize_session=False
+                            # Perform explicit update
+                            from sqlalchemy import update
+                            stmt = update(MedicalRecord).where(MedicalRecord.id.in_(ids_to_update)).values(
+                                full_transcription=transcribed_text
                             )
+                            db.execute(stmt)
                             db.commit()
-                            print("✅ Transcription updated successfully.")
+                            print(f"✅ Transcription updated successfully for IDs {ids_to_update}")
                         except Exception as db_err:
                             print(f"❌ Failed to update transcription: {db_err}")
+                            traceback.print_exc()
                         finally:
                             db.close()
                     

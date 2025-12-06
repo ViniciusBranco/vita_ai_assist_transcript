@@ -8,6 +8,7 @@ interface MedicalRecordSummary {
     record_type: 'anamnese' | 'evolucao';
     created_at: string;
     patient_name?: string;
+    patient_id?: number;
     structured_content: {
         paciente?: string;
         [key: string]: any;
@@ -70,7 +71,7 @@ export default function HistoryScreen() {
                     filteredRecords.map((record) => (
                         <Link
                             key={record.id}
-                            to={`/record/${record.id}`}
+                            to={record.patient_id ? `/patient/${record.patient_id}/record/${record.id}` : `/record/${record.id}`}
                             className="group bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-200 transition-all flex items-center justify-between"
                         >
                             <div className="flex items-center gap-4">

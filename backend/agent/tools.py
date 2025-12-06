@@ -1,132 +1,122 @@
 from langchain_core.tools import tool
-from agent.schemas import AnamneseSchema, EvolucaoSchema
+from agent.schemas import AtendimentoSchema
 from database import SessionLocal
 from models import MedicalRecord, Appointment, Patient
 import datetime
 from sqlalchemy.orm import Session
 from core.context import transcription_context
 
-def _get_or_create_patient(db: Session, patient_name_raw: str | None) -> int:
+def _get_or_create_patient(db: Session, patient_name_raw: str | None, cpf_raw: str | None = None) -> int:
     """
-    Busca paciente pelo nome (case-insensitive) ou cria um novo.
-    Retorna o ID do paciente.
+    Busca paciente pelo CPF (prioridade) ou nome, ou cria novo.
     """
+    print(f"🔍 DEBUG: Resolving Patient. Name='{patient_name_raw}', CPF='{cpf_raw}'")
+
+    # Clean CPF: Extract digits only
+    clean_cpf = None
+    if cpf_raw:
+        digits = ''.join(filter(str.isdigit, cpf_raw))
+        if digits:
+            clean_cpf = digits
+            print(f"   -> Cleaned CPF: {clean_cpf}")
+
+    # 1. Busca por CPF se existir
+    if clean_cpf:
+        # Check specifically for CPF collision
+        patient = db.query(Patient).filter(Patient.cpf == clean_cpf).first()
+        if patient:
+            print(f"✅ Found patient by CPF: {patient.name} (ID: {patient.id})")
+            return patient.id
+
+    # 2. Se não achou por CPF, trata nome
     if not patient_name_raw:
-        # Tenta buscar um paciente "Desconhecido" ou cria um
-        unknown_name = "Paciente Desconhecido"
+        unknown_name = "Paciente Não Identificado"
+        # Try to find 'unknown' patient to reuse? Or create new? Usually reuse.
+        # But if we have a CPF but no name? (Rare edge case)
         patient = db.query(Patient).filter(Patient.name == unknown_name).first()
         if not patient:
-            patient = Patient(name=unknown_name, phone="0000000000") # Placeholder phone
+            patient = Patient(name=unknown_name, cpf=clean_cpf) # Use CPF if available even if name unknown
             db.add(patient)
             db.commit()
             db.refresh(patient)
         return patient.id
 
-    # Limpeza básica do nome (remove pontuação extra, espaços)
-    clean_name = patient_name_raw.strip().replace(",", "").split(" (")[0] # Ex: "Ana, 30 anos" -> "Ana"
+    clean_name = patient_name_raw.strip().replace(",", "").split(" (")[0]
     
-    # Busca exata (poderia ser ILIKE se fosse postgres específico, mas aqui usamos python logic ou filter)
-    # Usando ilike para case insensitive no Postgres
+    # 3. Busca por Nome (Potencial Homônimo)
+    # Only search by name if we didn't find by CPF
     patient = db.query(Patient).filter(Patient.name.ilike(clean_name)).first()
     
     if not patient:
-        # Cria novo
-        # Gera um telefone dummy único se não tivermos (em produção pegariamos do cadastro)
-        import uuid
-        dummy_phone = f"55{str(uuid.uuid4().int)[:9]}" 
-        
-        patient = Patient(name=clean_name, phone=dummy_phone)
+        # CRIAR NOVO PACIENTE
+        print(f"🆕 Creating new patient: {clean_name} | CPF: {clean_cpf}")
+        patient = Patient(name=clean_name, cpf=clean_cpf) # Explicit CPF assignment
         db.add(patient)
         db.commit()
         db.refresh(patient)
-        print(f"🆕 Created new patient: {clean_name} (ID: {patient.id})")
     else:
-        print(f"✅ Found existing patient: {patient.name} (ID: {patient.id})")
+        # PACIENTE EXISTENTE (por nome), mas verificar se precisamos atualizar CPF
+        # Se o paciente encontrado NÃO tem CPF, mas recebemos um CPF agora -> Atualiza.
+        if clean_cpf and not patient.cpf:
+             print(f"🔄 Enhancing existing patient {patient.name} with CPF {clean_cpf}")
+             patient.cpf = clean_cpf
+             db.add(patient)
+             db.commit()
+             db.refresh(patient)
+        
+        # Conflict Warning: Found by name, but CPF might differ? 
+        # Logic above handles 'not found by CPF'. So if we are here, 
+        # either clean_cpf is None OR clean_cpf is distinct from patient.cpf (if patient.cpf exists).
+        # For simplicity, we assume if names match, it's the same person, unless we want strict checking.
+        # We only update if missing.
+             
+        print(f"✅ Found existing patient by Name: {patient.name} (ID: {patient.id})")
         
     return patient.id
 
 @tool
-def save_anamnese(data: AnamneseSchema) -> str:
+def save_atendimento(data: AtendimentoSchema, transcription: str = None) -> str:
     """
-    Salva uma ficha de Anamnese no banco de dados.
-    Use esta ferramenta quando o texto for identificado como uma Anamnese (queixa, histórico, sintomas).
+    SALVA UM ÚNICO ATENDIMENTO UNIFICADO.
+    Salva todos os dados clínicos (Anamnese + Evolução) em um único registro.
     """
-    print(f"--- TOOL: Saving Anamnese ---")
-    print(f"Data: {data}")
+    print(f"--- TOOL: Saving Atendimento (Unified) ---")
     
     try:
         db = SessionLocal()
         
-        # Resolve Patient
-        patient_id = _get_or_create_patient(db, data.paciente)
+        # 1. Resolve Patient
+        patient_id = _get_or_create_patient(db, data.paciente.nome, data.paciente.cpf)
             
+        # 2. Cria Appointment
         appointment = Appointment(patient_id=patient_id, date_time=datetime.datetime.now(), status="completed")
         db.add(appointment)
         db.commit()
         db.refresh(appointment)
 
-        record = MedicalRecord(
+        # 3. Salva Registro Único (Atendimento)
+        # Dump completo do schema para JSON
+        full_payload = data.model_dump()
+        
+        rec = MedicalRecord(
             appointment_id=appointment.id,
-            record_type="anamnese", 
-            structured_content=data.model_dump(), # Pydantic v2
-            full_transcription=transcription_context.get()
+            record_type="atendimento", # Tipo Unificado
+            structured_content=full_payload,
+            # transcription will be updated via webhook logic or if passed explicitly
+            # The user logic relies on updating it later, so we can leave None or try context if needed
+            full_transcription=None 
         )
-        db.add(record)
         
-        try:
-            db.commit()
-            print(f"✅ DB COMMIT SUCCESS: Anamnese ID {record.id} saved for Patient ID {patient_id}")
-            return f"Anamnese salva com sucesso. ID: {record.id}"
-        except Exception as commit_error:
-            db.rollback()
-            print(f"❌ DB COMMIT ERROR: {commit_error}")
-            return f"Erro crítico ao persistir no banco: {str(commit_error)}"
-
-    except Exception as e:
-        print(f"Error saving anamnese: {e}")
-        return f"Erro ao salvar anamnese: {str(e)}"
-    finally:
-        db.close()
-
-@tool
-def save_evolucao(data: EvolucaoSchema) -> str:
-    """
-    Salva uma ficha de Evolução Clínica no banco de dados.
-    Use esta ferramenta quando o texto for identificado como uma Evolução (procedimento realizado, dentes tratados).
-    """
-    print(f"--- TOOL: Saving Evolucao ---")
-    print(f"Data: {data}")
-    
-    try:
-        db = SessionLocal()
-        
-        # Resolve Patient
-        patient_id = _get_or_create_patient(db, data.paciente)
-            
-        appointment = Appointment(patient_id=patient_id, date_time=datetime.datetime.now(), status="completed")
-        db.add(appointment)
+        db.add(rec)
         db.commit()
-        db.refresh(appointment)
-
-        record = MedicalRecord(
-            appointment_id=appointment.id,
-            record_type="evolucao", 
-            structured_content=data.model_dump(),
-            full_transcription=transcription_context.get()
-        )
-        db.add(record)
+        db.refresh(rec)
         
-        try:
-            db.commit()
-            print(f"✅ DB COMMIT SUCCESS: Evolucao ID {record.id} saved for Patient ID {patient_id}")
-            return f"Evolução salva com sucesso. ID: {record.id}"
-        except Exception as commit_error:
-            db.rollback()
-            print(f"❌ DB COMMIT ERROR: {commit_error}")
-            return f"Erro crítico ao persistir no banco: {str(commit_error)}"
+        print(f"✅ Saved Unified Record ID {rec.id}")
+
+        return f"Atendimento salvo com sucesso. ID do Registro: {rec.id}"
 
     except Exception as e:
-        print(f"Error saving evolucao: {e}")
-        return f"Erro ao salvar evolução: {str(e)}"
+        print(f"Error saving atendimento: {e}")
+        return f"Erro ao salvar atendimento: {str(e)}"
     finally:
         db.close()

@@ -1,45 +1,52 @@
 import requests
 import sys
+import os
 
-# URL do seu backend local
-URL = "http://localhost:8000/api/webhook/whatsapp"
+# Configuração
+BACKEND_URL = "http://localhost:8000/api/webhook/whatsapp"
+HOST_FILE_SERVER = "http://host.docker.internal:9000"
 
-# URL do arquivo de áudio simulado
-# Assumindo que você rodou 'python -m http.server 9000' na raiz do projeto
-# host.docker.internal permite que o container acesse o host
-AUDIO_URL = "http://host.docker.internal:9000/audio_prontuario.ogg"
+# 1. Pega o nome do arquivo dos argumentos (ou usa um default)
+filename = "audio_prontuario.ogg"
+if len(sys.argv) > 1:
+    filename = sys.argv[1]
 
-# Payload simulando o formato que o WAHA envia
+# 2. Monta a URL simulada
+audio_url = f"{HOST_FILE_SERVER}/{filename}"
+
+# 3. Payload simulando WAHA (GOWS Engine Structure)
 payload = {
     "event": "message",
+    "session": "default",
     "payload": {
-        "id": "test_msg_simulation_001",
-        "from": "5511999999999@c.us",
-        "to": "5511888888888@c.us",
-        "body": "",
-        "type": "ptt", # ptt = push to talk (voice note)
+        "id": f"test_msg_{filename}",
+        "from": "5511999999999@c.us", # Número fake do médico
+        "to": "5511888888888@c.us",   # Número fake do bot
         "hasMedia": True,
-        "mediaUrl": AUDIO_URL, # Campo extra que adicionamos suporte no backend para testes
+        "media": {
+            "url": audio_url,
+            "mimetype": "audio/ogg; codecs=opus"
+        },
         "_data": {
             "mimetype": "audio/ogg; codecs=opus"
         }
     }
 }
 
-print(f"--- Iniciando Simulação de Webhook ---")
-print(f"Alvo: {URL}")
-print(f"Audio URL (Simulada): {AUDIO_URL}")
-print(f"Payload: {payload}")
+print(f"--- 🚀 Iniciando Simulação ---")
+print(f"📁 Arquivo Alvo: {filename}")
+print(f"🔗 URL Simulada: {audio_url}")
+print(f"📡 Enviando para: {BACKEND_URL}...")
 
 try:
-    response = requests.post(URL, json=payload)
-    print(f"\nStatus Code: {response.status_code}")
-    print(f"Response Body: {response.text}")
+    response = requests.post(BACKEND_URL, json=payload)
+    print(f"\n✅ Status Code: {response.status_code}")
+    print(f"📄 Response: {response.text}")
     
     if response.status_code == 200:
-        print("\nSucesso! Verifique os logs do container 'backend' para ver o processamento.")
+        print("\n👉 Sucesso! O Backend aceitou a tarefa.")
+        print("👀 Acompanhe o processamento no terminal: 'docker compose logs -f backend'")
     else:
-        print("\nFalha na requisição.")
+        print("\n❌ Falha na requisição.")
 except Exception as e:
-    print(f"\nErro ao conectar: {e}")
-    print("Dica: Verifique se o backend está rodando (docker compose up).")
+    print(f"\n❌ Erro de conexão: {e}")

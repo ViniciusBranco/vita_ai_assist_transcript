@@ -3,7 +3,7 @@ import os
 # import torch
 
 class TranscriptionService:
-    def __init__(self, model_size="small", device="cpu", compute_type=None):
+    def __init__(self, model_size="medium", device="cpu", compute_type=None):
         self.model_size = model_size
         self.device = "cpu"
         # Auto-select compute type based on device

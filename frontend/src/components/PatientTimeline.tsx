@@ -1,0 +1,82 @@
+import { Link, useParams } from 'react-router-dom';
+import { Activity, FileText, Calendar, ChevronRight } from 'lucide-react';
+
+interface TimelineEvent {
+    id: number;
+    record_type: 'anamnese' | 'evolucao' | 'atendimento';
+    date: string;
+    summary: string;
+}
+
+interface PatientTimelineProps {
+    events: TimelineEvent[];
+    patientId: string;
+}
+
+export function PatientTimeline({ events, patientId }: PatientTimelineProps) {
+    const { recordId: currentRecordId } = useParams<{ recordId: string }>();
+
+    return (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 h-full flex flex-col">
+            <div className="p-4 border-b border-slate-100">
+                <h3 className="font-semibold text-slate-900">Histórico do Paciente</h3>
+                <p className="text-xs text-slate-500 mt-1">Linha do tempo de atendimentos</p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4">
+                {events.map((event, index) => {
+                    const isCurrent = Number(currentRecordId) === event.id;
+                    return (
+                        <div key={event.id} className="relative pl-4">
+                            {/* Vertical Line */}
+                            {index !== events.length - 1 && (
+                                <div className="absolute left-[19px] top-8 bottom-[-16px] w-0.5 bg-slate-100"></div>
+                            )}
+
+                            <Link
+                                to={`/patient/${patientId}/record/${event.id}`}
+                                className={`block relative z-10 group ${isCurrent ? 'pointer-events-none' : ''}`}
+                            >
+                                <div className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${isCurrent
+                                    ? 'bg-yellow-50 border-yellow-200 shadow-sm'
+                                    : 'bg-white border-slate-100 hover:border-blue-200 hover:shadow-sm'
+                                    }`}>
+                                    <div className={`p-2 rounded-lg flex-shrink-0 ${event.record_type === 'anamnese'
+                                        ? 'bg-emerald-100 text-emerald-600'
+                                        : 'bg-blue-100 text-blue-600'
+                                        }`}>
+                                        {event.record_type === 'anamnese' ? (
+                                            <FileText className="w-4 h-4" />
+                                        ) : (
+                                            <Activity className="w-4 h-4" />
+                                        )}
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className={`text-xs font-semibold uppercase tracking-wider ${event.record_type === 'anamnese' ? 'text-emerald-600' : 'text-blue-600'
+                                                }`}>
+                                                {event.record_type}
+                                            </span>
+                                            <span className="text-xs text-slate-400 flex items-center gap-1">
+                                                <Calendar className="w-3 h-3" />
+                                                {new Date(event.date).toLocaleDateString('pt-BR')}
+                                            </span>
+                                        </div>
+                                        <p className={`text-sm line-clamp-2 ${isCurrent ? 'text-slate-700 font-medium' : 'text-slate-600'}`}>
+                                            {event.summary || 'Sem resumo disponível.'}
+                                        </p>
+                                    </div>
+
+                                    {!isCurrent && (
+                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-400 self-center" />
+                                    )}
+                                </div>
+                            </Link>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}

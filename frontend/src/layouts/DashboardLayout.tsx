@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, History, UploadCloud, Settings, LogOut, Menu } from 'lucide-react';
+import { LayoutDashboard, History, UploadCloud, LogOut, Menu, Users } from 'lucide-react';
 import { useState } from 'react';
 
 export default function DashboardLayout() {
@@ -10,6 +10,7 @@ export default function DashboardLayout() {
 
     const navItems = [
         { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/patients', label: 'Pacientes', icon: Users },
         { path: '/history', label: 'Histórico', icon: History },
         { path: '/upload', label: 'Novo Upload', icon: UploadCloud },
     ];
@@ -41,8 +42,8 @@ export default function DashboardLayout() {
                             key={item.path}
                             to={item.path}
                             className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all group ${isActive(item.path)
-                                    ? 'bg-blue-50 text-blue-600 font-medium'
-                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                ? 'bg-blue-50 text-blue-600 font-medium'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                 }`}
                         >
                             <item.icon className={`w-5 h-5 ${isActive(item.path) ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
