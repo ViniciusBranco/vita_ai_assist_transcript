@@ -2,7 +2,8 @@
 
 > **Transforme áudios de consulta em prontuários estruturados automaticamente via WhatsApp.**
 
-O **Vita.AI** é uma plataforma SaaS *Open Source* que utiliza Inteligência Artificial Generativa Local para revolucionar a rotina de dentistas e médicos. O sistema escuta, transcreve, entende e organiza o atendimento clínico em segundos, garantindo segurança de dados e agilidade.
+O **Vita.AI** é uma plataforma SaaS **Proprietária** de gestão clínica impulsionada por Inteligência Artificial Generativa Local (Privacy-first). O sistema escuta, transcreve, entende e organiza o atendimento clínico em segundos, garantindo segurança de dados e agilidade para dentistas e médicos.
+
 
 ![Status](https://img.shields.io/badge/Status-MVP%20Completed-success)
 ![Stack](https://img.shields.io/badge/AI%20Agent-Local%20LLM%20(Qwen%202.5:7B)-violet)
@@ -21,69 +22,59 @@ O **Vita.AI** é uma plataforma SaaS *Open Source* que utiliza Inteligência Art
 
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 
-## ✨ Funcionalidades Principais
+## ✨ Funcionalidades (Versão 1.0)
 
-* 🎙️ **Transcrição de Alta Fidelidade:** Motor *Faster-Whisper* otimizado para português brasileiro e termos técnicos odontológicos.
-* 🧠 **Inteligência Clínica:** Agente *LangGraph* que classifica o atendimento (Anamnese/Evolução), extrai sintomas, procedimentos e medicamentos.
-* 🆔 **Gestão de Identidade:** Detecção automática de CPF e Nome para criação ou atualização de pacientes.
+* 🎙️ **Transcrição de Alta Fidelidade:** Motor *Faster-Whisper* otimizado para português brasileiro e termos técnicos.
+* 🧠 **Inteligência Clínica (Agentic AI):** Agente *LangGraph* que classifica o atendimento, extrai CPF, procedimentos e histórico médico.
+* 🆔 **Gestão de Identidade:** Detecção automática de CPF e Nome para criação ou unificação de cadastros de pacientes.
+* 📂 **Prontuário Unificado:** Consolida Anamnese e Evolução em um único registro de atendimento coerente.
 * 📱 **Integração WhatsApp:** Envie o áudio no app e receba a confirmação instantânea.
-* 💻 **Dashboard Profissional:** Interface React para revisão, edição e gestão de histórico clínico (Timeline).
+* 💻 **Dashboard Profissional:** Timeline completa do paciente, edição de transcrição e revisão de dados.
+
+## 🚀 Roadmap (Visão de Futuro)
+
+O Vita.AI está evoluindo para um ERP Clínico completo. Módulos já previstos na interface:
+
+- [ ] **📅 Agenda Inteligente:** Agendamento integrado com lembretes via WhatsApp.
+- [ ] **💰 Gestão Financeira:** Controle de fluxo de caixa e integração com convênios.
+- [ ] **📦 Estoque Preditivo:** Baixa automática de materiais baseada nos procedimentos extraídos pela IA.
+- [ ] **⚡ Processamento Assíncrono:** Arquitetura de filas (Celery/Redis) para alta escalabilidade.
 
 ## 🏗️ Arquitetura (Microsserviços)
 
-O projeto roda inteiramente em containers Docker, garantindo portabilidade e fácil deploy.
+O projeto roda inteiramente em containers Docker:
 
-1.  **Backend (FastAPI):** API REST, SQLAlchemy (Postgres), Alembic (Migrações) e LangChain (Lógica de Agente).
-2.  **Frontend (React + Vite):** SPA moderna com TailwindCSS v4, Axios e Lucide Icons.
-3.  **AI Engine (Ollama):** Servidor de inferência local rodando Qwen 2.5 7B (GPU recommended).
-4.  **Database (PostgreSQL):** Persistência relacional robusta com JSONB para flexibilidade de schema.
-5.  **WhatsApp Gateway (WAHA):** Conexão via socket com a API do WhatsApp.
+| Serviço | Tecnologia | Função |
+|---------|------------|--------|
+| **Backend** | FastAPI / Python 3.11 | API REST, SQLAlchemy (Postgres), Alembic e LangChain. |
+| **Frontend** | React / Vite / Tailwind | Interface moderna (SPA) para gestão clínica. |
+| **AI Engine** | Ollama (Qwen 2.5) | Servidor de inferência local (LLM). |
+| **Database** | PostgreSQL 15 | Persistência relacional com suporte a JSONB. |
+| **Gateway** | WAHA | Conexão via socket com a API do WhatsApp. |
 
-## 🚀 Como Rodar (Local)
+## 🛠️ Como Rodar (Ambiente de Desenvolvimento)
 
 ### Pré-requisitos
 * Docker & Docker Compose
-* NVIDIA GPU (Recomendado para performance de transcrição/LLM)
+* NVIDIA GPU (Recomendado para performance de transcrição)
 * 16GB+ RAM
 
-### Passo a Passo
+### Instalação
 
-1.  **Clone e Configure:**
+1.  **Configure o Ambiente:**
     ```bash
-    git clone [https://github.com/seu-usuario/vita-ai.git](https://github.com/seu-usuario/vita-ai.git)
     cp .env.example .env
-    # Ajuste WAHA_API_KEY e configurações de banco no .env
+    # Configure as credenciais de produção
     ```
 
-2.  **Inicie a Infraestrutura:**
+2.  **Inicie o Sistema:**
     ```bash
     docker compose up -d --build
     ```
 
-3.  **Conecte o WhatsApp:**
-    * Acesse `http://localhost:3000/dashboard`
-    * Escaneie o QR Code com seu WhatsApp.
-
-4.  **Acesse o Sistema:**
+3.  **Acesse:**
     * Frontend: `http://localhost:5173`
-    * Backend Docs: `http://localhost:8000/docs`
-
-## 🧪 Como Testar (Simulação)
-
-Para validar sem conectar um celular real:
-
-1.  Coloque um arquivo de áudio (`teste.ogg`) na pasta raiz.
-2.  Inicie o servidor de arquivos local: `python -m http.server 9000`.
-3.  Execute o script de teste:
-    ```bash
-    python test_webhook_simulation.py teste.ogg
-    ```
-4.  Verifique o resultado no Dashboard.
-
-## 🛡️ Segurança e Privacidade
-
-* **100% Local:** Nenhum dado de áudio ou texto sai do seu servidor para APIs de terceiros (OpenAI/Google).
-* **Dados Estruturados:** CPF e dados sensíveis são tratados com rigor no banco de dados.
+    * Conecte o WhatsApp em `http://localhost:3000/dashboard`
 
 ---
-*Desenvolvido com 💙 e IA.*
+*© 2025 Vita.AI. Todos os direitos reservados. Uso não autorizado é proibido.*
