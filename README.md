@@ -22,23 +22,37 @@ O **Vita.AI** é uma plataforma SaaS **Proprietária** de gestão clínica impul
 
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 
+
 ## ✨ Funcionalidades (Versão 1.0)
 
 * 🎙️ **Transcrição de Alta Fidelidade:** Motor *Faster-Whisper* otimizado para português brasileiro e termos técnicos.
-* 🧠 **Inteligência Clínica (Agentic AI):** Agente *LangGraph* que classifica o atendimento, extrai CPF, procedimentos e histórico médico.
+* 🧠 **Inteligência Clínica (Agentic AI):** Agente *LangGraph* que classifica o atendimento (Anamnese/Evolução), extrai CPF, procedimentos e histórico médico.
 * 🆔 **Gestão de Identidade:** Detecção automática de CPF e Nome para criação ou unificação de cadastros de pacientes.
+* 🏷️ **Apelidos (Aliases):** Suporte a identificação por nomes informais ("Toninho", "Juju") no áudio.
 * 📂 **Prontuário Unificado:** Consolida Anamnese e Evolução em um único registro de atendimento coerente.
 * 📱 **Integração WhatsApp:** Envie o áudio no app e receba a confirmação instantânea.
-* 💻 **Dashboard Profissional:** Timeline completa do paciente, edição de transcrição e revisão de dados.
+* 💻 **Dashboard Profissional:** Timeline completa do paciente, edição de transcrição e gestão de CRUD de pacientes.
 
-## 🚀 Roadmap (Visão de Futuro)
+## 🚀 Roadmap & Backlog do Produto
 
-O Vita.AI está evoluindo para um ERP Clínico completo. Módulos já previstos na interface:
+O Vita.AI foi desenhado para evoluir para um ERP Clínico completo. Abaixo, o planejamento priorizado para as próximas versões:
 
-- [ ] **📅 Agenda Inteligente:** Agendamento integrado com lembretes via WhatsApp.
-- [ ] **💰 Gestão Financeira:** Controle de fluxo de caixa e integração com convênios.
-- [ ] **📦 Estoque Preditivo:** Baixa automática de materiais baseada nos procedimentos extraídos pela IA.
-- [ ] **⚡ Processamento Assíncrono:** Arquitetura de filas (Celery/Redis) para alta escalabilidade.
+### 🔹 Expansão de Módulos (Já visíveis na Sidebar)
+Os seguintes módulos já possuem interface de acesso (botões "mock") e serão implementados na V2:
+- [ ] **📅 Agenda Inteligente:** Agendamento visual integrado com lembretes automáticos via WhatsApp.
+- [ ] **💰 Gestão Financeira:** Controle de fluxo de caixa, contas a pagar/receber e integração com convênios.
+- [ ] **📦 Estoque Preditivo:** Baixa automática de materiais (ex: resina, anestésico) baseada nos procedimentos extraídos pela IA do prontuário.
+- [ ] **📊 Relatórios BI:** Dashboards de produtividade e faturamento.
+- [ ] **⚙️ Configurações:** Ajustes de prompt da IA e preferências da clínica.
+
+### 🔹 Melhorias de Cadastro (CRM)
+- [ ] **Campos Estendidos:** Adição de RG, Órgão Emissor, Nome do Responsável, Convênio e Endereço Completo no cadastro do paciente.
+- [ ] **Upload de Documentos:** Anexo de fotos (raio-x) e PDFs ao prontuário.
+
+### 🔹 Backlog Técnico (Escalabilidade)
+- [ ] **⚡ Arquitetura Assíncrona (Task Queue):** Implementação de **Celery + Redis** para desacoplar a API do processamento de IA.
+    * *Objetivo:* Impedir que o processamento de áudios longos bloqueie a navegação no Frontend ou o cadastro de pacientes (Non-blocking I/O).
+- [ ] **🔐 Autenticação:** Implementação de Login/Senha e Níveis de Acesso (Médico vs Secretária).
 
 ## 🏗️ Arquitetura (Microsserviços)
 
@@ -64,7 +78,7 @@ O projeto roda inteiramente em containers Docker:
 1.  **Configure o Ambiente:**
     ```bash
     cp .env.example .env
-    # Configure as credenciais de produção
+    # Configure as credenciais de produção e chaves de API
     ```
 
 2.  **Inicie o Sistema:**

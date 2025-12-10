@@ -2,7 +2,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-0}:8000"
     volumes:
       - ./backend:/app
     environment:
@@ -20,12 +20,12 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT:-0}:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
     depends_on:
       - backend
       - db
@@ -39,7 +39,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
 
   waha:
     image: devlikeapro/waha
@@ -52,7 +52,7 @@ services:
       - WHATSAPP_HOOK_URL=http://backend:8000/api/webhook/whatsapp
       - WHATSAPP_HOOK_EVENTS=message
     ports:
-      - "3000:3000"
+      - "${WAHA_PORT:-0}:3000"
     volumes:
       - waha_data:/app/.waha
 

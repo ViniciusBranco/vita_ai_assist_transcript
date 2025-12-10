@@ -188,6 +188,7 @@ def create_patient(payload: Dict[str, Any] = Body(...), db: Session = Depends(ge
         name=name, 
         cpf=clean_cpf, 
         phone=payload.get("phone"),
+        aliases=payload.get("aliases", [])
     )
 
     if "birth_date" in payload and payload["birth_date"]:
@@ -224,6 +225,7 @@ def get_patient(patient_id: int, db: Session = Depends(get_db)):
         "name": patient.name,
         "cpf": patient.cpf,
         "phone": patient.phone,
+        "aliases": patient.aliases,
         "birth_date": patient.birth_date,
         "created_at": patient.created_at
     }
@@ -256,6 +258,8 @@ def update_patient(patient_id: int, payload: Dict[str, Any] = Body(...), db: Ses
 
     if "phone" in payload:
         patient.phone = payload["phone"]
+    if "aliases" in payload:
+        patient.aliases = payload["aliases"]
     if "birth_date" in payload:
         # Assumes format "YYYY-MM-DD"
         try:

@@ -4,6 +4,7 @@ from database import SessionLocal
 from models import MedicalRecord, Appointment, Patient
 import datetime
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from core.context import transcription_context
 
 def _get_or_create_patient(db: Session, patient_name_raw: str | None, cpf_raw: str | None = None) -> int:
@@ -43,9 +44,17 @@ def _get_or_create_patient(db: Session, patient_name_raw: str | None, cpf_raw: s
 
     clean_name = patient_name_raw.strip().replace(",", "").split(" (")[0]
     
-    # 3. Busca por Nome (Potencial Homônimo)
-    # Only search by name if we didn't find by CPF
-    patient = db.query(Patient).filter(Patient.name.ilike(clean_name)).first()
+    # 3. Busca por Nome (Potencial Homônimo) ou Alias
+    # Searches matches in 'name' OR if the checked name is contained in the 'aliases' array
+    # Note: JSONB contains needs exact match for elements inside the array usually, 
+    # but let's assume aliases are stored as simple strings.
+    # We want to check if 'clean_name' is IN aliases.
+    patient = db.query(Patient).filter(
+        or_(
+            Patient.name.ilike(clean_name),
+            Patient.aliases.contains([clean_name]) 
+        )
+    ).first()
     
     if not patient:
         # CRIAR NOVO PACIENTE

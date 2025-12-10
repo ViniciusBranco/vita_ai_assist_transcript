@@ -13,7 +13,8 @@ export default function PatientEditScreen() {
         name: '',
         phone: '',
         cpf: '',
-        birth_date: ''
+        birth_date: '',
+        aliases: '' // Store as string for input
     });
     const [loading, setLoading] = useState(!isNew);
     const [saving, setSaving] = useState(false);
@@ -28,7 +29,14 @@ export default function PatientEditScreen() {
         try {
             setLoading(true);
             const response = await axios.get(`http://localhost:8000/api/patients/${patientId}`);
-            setFormData(response.data);
+            // Transform aliases array to string for input
+            const data = response.data;
+            setFormData({
+                ...data,
+                // Ensure date is YYYY-MM-DD (remove time if present)
+                birth_date: data.birth_date ? data.birth_date.split('T')[0] : '',
+                aliases: Array.isArray(data.aliases) ? data.aliases.join(', ') : (data.aliases || '')
+            });
         } catch (error) {
             console.error('Error loading patient:', error);
             // Mock data for demo
@@ -37,7 +45,8 @@ export default function PatientEditScreen() {
                     name: 'João Silva',
                     phone: '(11) 99999-9999',
                     cpf: '123.456.789-00',
-                    birth_date: '1985-05-15'
+                    birth_date: '1985-05-15',
+                    aliases: 'Joãozinho, Jota'
                 });
             }
         } finally {
@@ -48,11 +57,18 @@ export default function PatientEditScreen() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
+
+        // Prepare payload: convert aliases string -> array
+        const payload = {
+            ...formData,
+            aliases: formData.aliases.split(',').map(s => s.trim()).filter(Boolean)
+        };
+
         try {
             if (isNew) {
-                await axios.post('http://localhost:8000/api/patients', formData);
+                await axios.post('http://localhost:8000/api/patients', payload);
             } else {
-                await axios.put(`http://localhost:8000/api/patients/${id}`, formData);
+                await axios.put(`http://localhost:8000/api/patients/${id}`, payload);
             }
             alert('Paciente salvo com sucesso!');
             navigate('/patients');
@@ -106,7 +122,7 @@ export default function PatientEditScreen() {
 
                 <form onSubmit={handleSubmit} className="p-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
+                        <div className="col-span-1 md:col-span-2 space-y-2">
                             <label className="block text-sm font-medium text-slate-700">Nome Completo</label>
                             <input
                                 type="text"
@@ -117,6 +133,19 @@ export default function PatientEditScreen() {
                                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400"
                                 placeholder="Ex: João da Silva"
                             />
+                        </div>
+
+                        <div className="col-span-1 md:col-span-2 space-y-2">
+                            <label className="block text-sm font-medium text-slate-700">Apelidos / Como prefere ser chamado</label>
+                            <input
+                                type="text"
+                                name="aliases"
+                                value={formData.aliases}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400"
+                                placeholder="Separe por vírgulas. Ex: Zezinho, Jota"
+                            />
+                            <p className="text-xs text-slate-400">Isso ajuda na identificação do paciente durante a transcrição.</p>
                         </div>
 
                         <div className="space-y-2">

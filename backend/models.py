@@ -12,6 +12,7 @@ class Patient(Base):
     cpf = Column(String, unique=True, index=True, nullable=True) # New CPF field
     phone = Column(String, index=True, nullable=True) # Phone no longer unique
     birth_date = Column(DateTime, nullable=True)
+    aliases = Column(JSONB, default=[]) # List of alternative names/nicknames
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
     appointments = relationship("Appointment", back_populates="patient")
