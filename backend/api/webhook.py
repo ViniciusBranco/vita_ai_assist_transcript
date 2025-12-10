@@ -39,11 +39,20 @@ async def whatsapp_webhook(request: Request, background_tasks: BackgroundTasks):
     has_media = payload.get("hasMedia", False)
 
     # Extract mimetype (GOWS/WAHA specific)
-    mimetype = payload.get("media", {}).get("mimetype")
+    media_data = payload.get("media") or {} 
+    mimetype = media_data.get("mimetype")
+
     if not mimetype and "_data" in payload:
         mimetype = payload["_data"].get("mimetype")
 
     print(f"🔍 DECISION DATA: Event='{event}', Type='{msg_type}', HasMedia={has_media}, Mimetype='{mimetype}'")
+
+    # Safety/Optimization: Return OK immediately if not audio
+    is_audio_mime = mimetype and "audio" in mimetype
+    is_audio_type = msg_type in ["ptt", "audio", "voice"]
+
+    if not (is_audio_mime or is_audio_type):
+        return {"status": "ignored"}
 
     if event == "message":
         # Robust audio check: ptt, audio, or voice OR mimetype contains audio
