@@ -3,9 +3,17 @@ from agent.schemas import AtendimentoSchema
 from database import SessionLocal
 from models import MedicalRecord, Appointment, Patient
 import datetime
-from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy.orm import Session
 from core.context import transcription_context
+import unicodedata
+
+def normalize_text(text: str) -> str:
+    """Remove accents, strip and lowercase text."""
+    if not text:
+        return ""
+    return ''.join(c for c in unicodedata.normalize('NFD', text)
+                  if unicodedata.category(c) != 'Mn').lower().strip()
 
 def _get_or_create_patient(db: Session, patient_name_raw: str | None, cpf_raw: str | None = None) -> int:
     """
@@ -55,6 +63,30 @@ def _get_or_create_patient(db: Session, patient_name_raw: str | None, cpf_raw: s
             Patient.aliases.contains([clean_name]) 
         )
     ).first()
+    
+    # 4. Fallback: Busca Normalizada (Python-side)
+    # Se a busca estrita falhou (ex: Banco="Antonio", Input="Antônio"), tentamos normalizar.
+    if not patient:
+        print(f"⚠️ Strict match failed for '{clean_name}'. Attempting normalized scan...")
+        normalized_target = normalize_text(clean_name)
+        
+        # Fetch all patients (MVP approach - OK for small clinic)
+        # Em produção real, usaríamos extensão 'unaccent' ou Full Text Search no Postgres
+        all_patients = db.query(Patient).all()
+        
+        for p in all_patients:
+            # Check Name
+            if normalize_text(p.name) == normalized_target:
+                patient = p
+                print(f"✅ Found patient by Normalized Name: {p.name} (Input: {clean_name})")
+                break
+            
+            # Check Aliases
+            if p.aliases:
+                if any(normalize_text(a) == normalized_target for a in p.aliases):
+                    patient = p
+                    print(f"✅ Found patient by Normalized Alias: {p.name} (Matched: {clean_name})")
+                    break
     
     if not patient:
         # CRIAR NOVO PACIENTE
