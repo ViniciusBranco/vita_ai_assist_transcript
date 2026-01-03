@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout';
 import DashboardHome from './pages/DashboardHome';
+import FinanceDashboard from './features/finance/pages/FinanceDashboard';
 import UploadScreen from './pages/UploadScreen';
 import HistoryScreen from './pages/HistoryScreen';
 import RecordReviewScreen from './pages/RecordReviewScreen';
@@ -15,6 +16,7 @@ function App() {
       <Routes>
         <Route element={<DashboardLayout />}>
           <Route path="/" element={<DashboardHome />} />
+          <Route path="/finance" element={<FinanceDashboard />} />
           <Route path="/upload" element={<UploadScreen />} />
           <Route path="/history" element={<HistoryScreen />} />
           <Route path="/record/:id" element={<RecordReviewScreen />} />

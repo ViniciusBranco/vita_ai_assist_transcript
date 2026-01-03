@@ -11,7 +11,11 @@ services:
       - OLLAMA_HOST=http://host.docker.internal:11434
       - OLLAMA_MODEL=qwen2.5:7b
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://user:password@db:5432/vita_ai_db
+      - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/vita_ai_db
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL_NAME=${GEMINI_MODEL_NAME}
+      - LLM_PROVIDER=${LLM_PROVIDER}
+      - GOOGLE_API_KEY=${GEMINI_API_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

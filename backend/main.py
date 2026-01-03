@@ -25,6 +25,10 @@ app.include_router(api_router, prefix="/api")
 app.include_router(webhook_router, prefix="/api")
 app.include_router(integrations.router, prefix="/api/v1/integrations", tags=["integrations"])
 
+# Finance Module
+from modules.finance.router import router as finance_router
+app.include_router(finance_router, prefix="/api/v1/finance")
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Vita.AI Transcript API"}

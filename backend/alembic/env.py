@@ -10,9 +10,6 @@ import sys
 # Add parent directory to path so we can import app models
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import Base from models (this ensures models are imported and registered)
-from models import Base
-
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -22,8 +19,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
+# Import Base from models package (this ensures all models are imported and registered)
+from models import Base
 target_metadata = Base.metadata
 
 # Override sqlalchemy.url from environment variable
@@ -57,6 +54,11 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+import asyncio
+from sqlalchemy.ext.asyncio import async_engine_from_config
+
+# ... existing imports ...
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
@@ -68,20 +70,28 @@ def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section, {})
     configuration["sqlalchemy.url"] = get_url()
 
-    connectable = engine_from_config(
+    connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
-    with connectable.connect() as connection:
+    def do_run_migrations(connection):
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata,
+            compare_type=True
         )
 
         with context.begin_transaction():
             context.run_migrations()
 
+    async def run_async_migrations():
+        async with connectable.connect() as connection:
+            await connection.run_sync(do_run_migrations)
+        await connectable.dispose()
+
+    asyncio.run(run_async_migrations())
 
 if context.is_offline_mode():
     run_migrations_offline()

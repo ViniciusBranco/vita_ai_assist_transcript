@@ -19,6 +19,7 @@ interface NavItem {
     path: string;
     isMock?: boolean;
     isHighlight?: boolean;
+    badge?: string;
 }
 
 interface AppSidebarProps {
@@ -36,13 +37,14 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
     const navItems: NavItem[] = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: History, label: 'Histórico', path: '/history' },
+        { icon: DollarSign, label: 'Finanças', path: '/finance', badge: 'New' },
         { icon: Users, label: 'Pacientes', path: '/patients' },
         { icon: UploadCloud, label: 'Novo Upload', path: '/upload', isHighlight: true },
     ];
 
     const mockItems: NavItem[] = [
         { icon: Calendar, label: 'Agenda', path: '#agenda', isMock: true },
-        { icon: DollarSign, label: 'Financeiro', path: '#finance', isMock: true },
+        // Moved to core: { icon: DollarSign, label: 'Financeiro', path: '#finance', isMock: true },
         { icon: Package, label: 'Estoque', path: '#stock', isMock: true },
         { icon: BarChart3, label: 'Relatórios', path: '#reports', isMock: true },
         { icon: Settings, label: 'Configurações', path: '#settings', isMock: true },
@@ -94,11 +96,18 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
                                 className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 border group ${isActive(item.path)
                                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40 border-blue-500/50' // Highlighted
                                     : 'text-slate-400 hover:bg-slate-800 hover:text-white border-transparent'
-                                    } ${!isOpen ? 'justify-center' : ''} font-medium`}
+                                    } ${!isOpen ? 'justify-center' : 'justify-between'} font-medium`}
                             >
-                                <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive(item.path) ? 'text-white' : 'text-slate-500 group-hover:text-white'
-                                    }`} />
-                                {isOpen && <span className="truncate">{item.label}</span>}
+                                <div className="flex items-center gap-3">
+                                    <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive(item.path) ? 'text-white' : 'text-slate-500 group-hover:text-white'
+                                        }`} />
+                                    {isOpen && <span className="truncate">{item.label}</span>}
+                                </div>
+                                {isOpen && item.badge && (
+                                    <span className="text-[10px] font-bold bg-white text-blue-600 px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                                        {item.badge}
+                                    </span>
+                                )}
                             </Link>
                         ))}
                     </nav>

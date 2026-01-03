@@ -1,8 +1,8 @@
 # Vita-AI - Plataforma SaaS Integrada de Gestão Clínica e Financeira 🦷💰🤖
 
-> **Transforme a rotina clínica com Inteligência Artificial Multimodal: de prontuários via áudio à conciliação bancária automática.**
+> Inteligência Artificial Multimodal para Saúde: de prontuários via áudio à auditoria fiscal automatizada.
 
-O **Vita-AI** é um ecossistema SaaS **Proprietário** projetado para profissionais da saúde. Originalmente focado em transcrição de prontuários (antigo *Vita-Transcript*), o sistema evoluiu para uma central de inteligência que integra atendimento clínico, chatbots whitelabel e gestão contábil, tudo processado via nuvem para máxima escalabilidade.
+O **Vita-AI** é um ecossistema SaaS **Proprietário** projetado para profissionais da saúde. O sistema integra atendimento clínico, chatbots whitelabel e gestão contábil, operando via **Google Gemini 2.5 Flash** para máxima escalabilidade em ambientes cloud sem GPU.
 
 ![Status](https://img.shields.io/badge/Status-v1.1--Transition%20Completed-success)
 ![AI Engine](https://img.shields.io/badge/AI-Google%20Gemini%202.5%20Flash-orange)
@@ -11,59 +11,44 @@ O **Vita-AI** é um ecossistema SaaS **Proprietário** projetado para profission
 
 ## 📈 Evolução do Projeto (Legacy vs Cloud)
 
-Recentemente, o projeto passou por uma refatoração arquitetural profunda para suportar o crescimento comercial:
-
-| Recurso | v1.0 (Legacy) | v1.1 (Atual - Vita-AI) |
-| :--- | :--- | :--- |
+| **Recurso** | **v1.0 (Legacy)** | **v1.1.0-final (Atual - Vita-AI)** |
+| --- | --- | --- |
 | **Identidade** | Vita-Transcript | **Vita-AI** |
-| **Processamento IA** | Local (Ollama + FasterWhisper) | **Cloud (Google Gemini API)** |
-| **Hardware Req.** | GPU Dedicada (NVIDIA) | **CPU-Only (Qualquer Instância Cloud)** |
-| **Escalabilidade** | Limitada pela VRAM local | **Elástica (API-based)** |
-| **Integração** | Monolítica | **Service-Oriented (Webhook S2S)** |
+| **Processamento IA** | Local (Ollama + FasterWhisper) | **Cloud (Gemini API / OpenAI)** |
+| **Arquitetura** | Monolítica | **Multi-Tenant (Isolated by `tenant_id`)** |
+| **Endpoint Integração** | N/A | **POST `/api/v1/integrations/chatbot-webhook`** |
 
-## ✨ Funcionalidades Core
+## ✨ Funcionalidades Consolidadas
 
-* 🎙️ **Prontuário via Áudio:** Transcrição e estruturação clínica imediata (Anamnese/Evolução) enviada via WhatsApp.
-* 🧠 **IA Multimodal Nativa:** Utiliza o **Gemini 2.5 Flash** para processar áudio, texto e imagens de documentos em um único gateway.
-* 🆔 **Gestão de Identidade:** Unificação de registros por CPF e suporte a **Apelidos (Aliases)** para reconhecimento fonético.
-* 📂 **Histórico Clínico:** Timeline visual completa por paciente com resumos inteligentes.
-* 🔗 **Integração Story2Scale:** Endpoint dedicado para receber inputs de Chatbots externos.
+- 🎙️ **Prontuário via Áudio:** Transcrição e estruturação clínica imediata enviada via integração Story2Scale.
+- 🧠 **Soberana Engine (Finance):** Conciliação bancária N:1 com janela de 45 dias e match hierárquico (Valor, ID Numérico e Tokens).
+- 🆔 **Multi-Tenancy Global:** Isolamento estrito de dados entre clínicas através de `tenant_id` em todos os modelos de dados.
+- 📂 **Auditoria Fiscal:** Classificação automática para Carnê-Leão baseada no Plano de Contas Saúde (P10.01.x).
+- 🔗 **Service-Oriented:** Pronto para operar sob o domínio `api-vita.story2scale.me`.
 
-## 🏗️ Arquitetura Consolidada
+## 🏗️ Estrutura do Projeto (Flattened)
 
-O projeto opera em containers Docker otimizados para deploy em instâncias AWS EC2 convencionais:
+```bash
+backend/
+├── api/             # Endpoints de integração (Chatbot-Webhook)
+├── core/            # AI Gateway (Gemini/OpenAI) e Telemetria
+├── models/          # Schemas consolidados (Clinical + Finance)
+├── modules/
+│   └── finance/     # Soberana Engine, Tax Agent e Reconciliation
+├── schemas/         # Pydantic AIUnifiedResponse e Metadata
+└── main.py          # Entrypoint único (Container: vita-ai-backend)
+```
 
-| Serviço | Tech Stack | Função |
-| :--- | :--- | :--- |
-| **Backend** | Python 3.11 / FastAPI | Orquestração de negócio e integração com Gemini. |
-| **Frontend** | React / Vite / Tailwind v4 | Interface administrativa e gestão de pacientes. |
-| **Database** | PostgreSQL 15 | Persistência de dados clínicos e financeiros (vita_ai_db). |
-| **AI Gateway** | Gemini 2.5 Flash | Motor único para STT, LLM e OCR. |
+## 🚀 Roadmap & Novas Ideias (V2)
 
-## 🚀 Roadmap de Integração (V2)
+### 🔹 Backlog Técnico (Prioridade Alta)
 
-Com a fundação v1.1 concluída, o foco agora é a unificação dos módulos:
+- [ ]  **⚡ Arquitetura de Filas:** Implementação de Celery + Redis para processamento de lotes financeiros de 1000+ transações.
+- [ ]  **🔐 Autenticação JWT:** Integração direta com o sistema de autenticação do Story2Scale.
 
-- [ ] **💰 Módulo Financeiro:** Migração do motor *Finance Recon AI* para o diretório `/modules/finance`.
-- [ ] **🤖 Chatbot Whitelabel:** Unificação dos Tenants entre o Story2Scale e o Vita-AI.
-- [ ] **⚡ Task Queue:** Implementação de Celery + Redis para processamento assíncrono de grandes lotes de documentos.
-- [ ] **📅 Agenda:** Sincronização automática entre o chatbot e o calendário do médico.
+### 💡 Ideias para Implementação (Novos Diferenciais)
 
-## 🛠️ Como Rodar (AWS / Local)
-
-1.  **Configure o Ambiente:**
-    ```bash
-    cp .env.example .env
-    # Adicione sua GEMINI_API_KEY no arquivo .env
-    ```
-
-2.  **Inicie o Sistema:**
-    ```bash
-    docker-compose up -d --build
-    ```
-
-3.  **Migração (Opcional):**
-    Execute `python backend/scripts/migrate_data_v1.py` para mover dados de instalações v1.0 legadas.
-
----
-*© 2026 Vita-AI. Todos os direitos reservados. Uso não autorizado é proibido.*
+- [ ]  **🎙️ VoiceID Verification:** Identificação biométrica do profissional no áudio para prevenir fraudes em prontuários.
+- [ ]  **📉 Predictive Cashflow:** IA para prever meses de alta carga tributária baseada no histórico de prontuários (procedimentos agendados vs. realizados).
+- [ ]  **🔎 Anomaly Detection:** Identificação automática de despesas financeiras incoerentes com o perfil da clínica (ex: gastos pessoais em conta PJ).
+- [ ]  **📱 Offline-First Sync:** Cache local para que o médico possa ditar prontuários mesmo em salas com blindagem de sinal celular, sincronizando via Service Workers.

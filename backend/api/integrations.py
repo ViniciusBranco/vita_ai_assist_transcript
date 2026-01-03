@@ -5,11 +5,16 @@ from core.config import settings
 from database import get_db
 import httpx
 
+import logging
+
+# Configure logger
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 gemini = GeminiService(api_key=settings.GEMINI_API_KEY)
 
-@router.post("/s2s-webhook")
-async def s2s_webhook(
+@router.post("/chatbot-webhook")
+async def chatbot_webhook(
     payload: dict = Body(...),
     db: Session = Depends(get_db)
 ):
@@ -25,9 +30,16 @@ async def s2s_webhook(
         audio_content = resp.content
 
     # Process via Gemini
-    structured_data = await gemini.process_medical_audio(audio_content)
+    ai_response = await gemini.process_medical_audio(audio_content)
     
+    # Log usage for auditing
+    logger.info(f"AI Usage for transaction: {ai_response.usage}")
+
     # Logic to save to medical_records (Vita.AI)
     # TODO: Implement patient resolution and record creation
     
-    return {"status": "success", "processed_data": structured_data}
+    return {
+        "status": "success", 
+        "processed_data": ai_response.content,
+        "usage": ai_response.usage.model_dump()
+    }
