@@ -1,26 +1,28 @@
 services:
   backend:
+    container_name: vita-ai-backend
     build: ./backend
+    restart: always
     ports:
-      - "${BACKEND_PORT:-0}:8000"
+      - "${BACKEND_PORT}:8000"
     volumes:
       - ./backend:/app
     environment:
       - OLLAMA_HOST=http://host.docker.internal:11434
       - OLLAMA_MODEL=qwen2.5:7b
-      - WAHA_BASE_URL=http://waha:3000
-      # Backend precisa saber a chave para falar com o WAHA
-      - WAHA_API_KEY=vita123
       - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://user:password@db:5432/vita_ai_db
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
       - db
 
   frontend:
+    container_name: vita-ai-frontend
     build: ./frontend
+    restart: always
     ports:
-      - "${FRONTEND_PORT:-0}:5173"
+      - "${FRONTEND_PORT}:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -32,30 +34,15 @@ services:
 
   db:
     image: postgres:15
+    restart: always
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=vita_transcript
+      - POSTGRES_DB=vita_ai_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "${DB_PORT:-5432}:5432"
-
-  waha:
-    image: devlikeapro/waha
-    restart: always
-    environment:
-      - WHATSAPP_DEFAULT_ENGINE=GOWS
-      - WAHA_API_KEY=vita123
-      - WHATSAPP_SWAGGER_NO_PASSWORD=True
-      - WAHA_DASHBOARD_NO_PASSWORD=True
-      - WHATSAPP_HOOK_URL=http://backend:8000/api/webhook/whatsapp
-      - WHATSAPP_HOOK_EVENTS=message
-    ports:
-      - "${WAHA_PORT:-0}:3000"
-    volumes:
-      - waha_data:/app/.waha
+      - "${DB_PORT}:5432"
 
 volumes:
   postgres_data:
-  waha_data:

@@ -7,7 +7,7 @@ BACKEND_URL = "http://localhost:8000/api/webhook/whatsapp"
 HOST_FILE_SERVER = "http://host.docker.internal:9000"
 
 # 1. Pega o nome do arquivo dos argumentos (ou usa um default)
-filename = "audio_prontuario_demo_4.ogg"
+filename = "audio_prontuario.ogg"
 if len(sys.argv) > 1:
     filename = sys.argv[1]
 

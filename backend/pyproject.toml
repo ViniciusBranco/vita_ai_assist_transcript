@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "vita-transcript-backend"
+name = "vita-ai"
 version = "0.1.0"
-description = "Backend for Vita.AI Transcription App"
+description = "Plataforma SaaS Integrada de Gestão Clínica e Financeira"
 authors = ["Vita.AI Team"]
 readme = "README.md"
 
@@ -19,13 +19,8 @@ python-multipart = "^0.0.17"
 langchain = "^0.3.0"
 langchain-community = "^0.3.0"
 langchain-core = "^0.3.0"
-langchain-ollama = "^0.2.0"
-langgraph = "^0.2.50"
-
-# --- Audio (CPU Optimized) ---
-# faster-whisper já traz suas deps (ctranslate2, tokenizers)
-# Não precisamos declarar 'torch' explicitamente aqui se não o importamos no código.
-faster-whisper = "^1.1.0"
+google-generativeai = "^0.8.6"
+httpx = "^0.27.0"
 
 [build-system]
 requires = ["poetry-core"]

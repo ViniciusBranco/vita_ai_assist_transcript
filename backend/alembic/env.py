@@ -28,7 +28,7 @@ target_metadata = Base.metadata
 
 # Override sqlalchemy.url from environment variable
 def get_url():
-    return os.getenv("DATABASE_URL", "postgresql://user:password@db:5432/vita_transcript")
+    return os.getenv("DATABASE_URL", "postgresql://user:password@db:5432/vita_ai_db")
 
 config.set_main_option("sqlalchemy.url", get_url())
 

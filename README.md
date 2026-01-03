@@ -1,94 +1,69 @@
-# Vita.AI - Assistente de Prontuário Inteligente 🦷🤖
+# Vita-AI - Plataforma SaaS Integrada de Gestão Clínica e Financeira 🦷💰🤖
 
-> **Transforme áudios de consulta em prontuários estruturados automaticamente via WhatsApp.**
+> **Transforme a rotina clínica com Inteligência Artificial Multimodal: de prontuários via áudio à conciliação bancária automática.**
 
-O **Vita.AI** é uma plataforma SaaS **Proprietária** de gestão clínica impulsionada por Inteligência Artificial Generativa Local (Privacy-first). O sistema escuta, transcreve, entende e organiza o atendimento clínico em segundos, garantindo segurança de dados e agilidade para dentistas e médicos.
+O **Vita-AI** é um ecossistema SaaS **Proprietário** projetado para profissionais da saúde. Originalmente focado em transcrição de prontuários (antigo *Vita-Transcript*), o sistema evoluiu para uma central de inteligência que integra atendimento clínico, chatbots whitelabel e gestão contábil, tudo processado via nuvem para máxima escalabilidade.
 
-
-![Status](https://img.shields.io/badge/Status-MVP%20Completed-success)
-![Stack](https://img.shields.io/badge/AI%20Agent-Local%20LLM%20(Qwen%202.5:7B)-violet)
-![Stack](https://img.shields.io/badge/AI-Local%20TTS%20(FasterWhisper:small)-blue)
-
-[![LangChain](https://img.shields.io/badge/LangChain-1c3c3c.svg?logo=langchain&logoColor=white)](#)
-[![Ollama](https://img.shields.io/badge/Ollama-fff?logo=ollama&logoColor=000)](#)
-[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=huggingface&logoColor=000)](#)
-
-[![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff)](#)
-[![CUDA](https://img.shields.io/badge/CUDA-76B900?logo=nvidia&logoColor=fff)](#)
-[![Postgres](https://img.shields.io/badge/Postgres-%23316192.svg?logo=postgresql&logoColor=white)](#)
-[![React](https://img.shields.io/badge/React-%2320232a.svg?logo=react&logoColor=%2361DAFB)](#)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=fff)](#)
-[![Tailwind](https://img.shields.io/badge/Tailwind%20CSS-%2338B2AC.svg?logo=tailwind-css&logoColor=white)](#)
-
+![Status](https://img.shields.io/badge/Status-v1.1--Transition%20Completed-success)
+![AI Engine](https://img.shields.io/badge/AI-Google%20Gemini%202.5%20Flash-orange)
+![Infra](https://img.shields.io/badge/Infra-AWS%20EC2%20(CPU--Only)-blue)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 
+## 📈 Evolução do Projeto (Legacy vs Cloud)
 
-## ✨ Funcionalidades (Versão 1.0)
+Recentemente, o projeto passou por uma refatoração arquitetural profunda para suportar o crescimento comercial:
 
-* 🎙️ **Transcrição de Alta Fidelidade:** Motor *Faster-Whisper* otimizado para português brasileiro e termos técnicos.
-* 🧠 **Inteligência Clínica (Agentic AI):** Agente *LangGraph* que classifica o atendimento (Anamnese/Evolução), extrai CPF, procedimentos e histórico médico.
-* 🆔 **Gestão de Identidade:** Detecção automática de CPF e Nome para criação ou unificação de cadastros de pacientes.
-* 🏷️ **Apelidos (Aliases):** Suporte a identificação por nomes informais ("Toninho", "Juju") no áudio.
-* 📂 **Prontuário Unificado:** Consolida Anamnese e Evolução em um único registro de atendimento coerente.
-* 📱 **Integração WhatsApp:** Envie o áudio no app e receba a confirmação instantânea.
-* 💻 **Dashboard Profissional:** Timeline completa do paciente, edição de transcrição e gestão de CRUD de pacientes.
+| Recurso | v1.0 (Legacy) | v1.1 (Atual - Vita-AI) |
+| :--- | :--- | :--- |
+| **Identidade** | Vita-Transcript | **Vita-AI** |
+| **Processamento IA** | Local (Ollama + FasterWhisper) | **Cloud (Google Gemini API)** |
+| **Hardware Req.** | GPU Dedicada (NVIDIA) | **CPU-Only (Qualquer Instância Cloud)** |
+| **Escalabilidade** | Limitada pela VRAM local | **Elástica (API-based)** |
+| **Integração** | Monolítica | **Service-Oriented (Webhook S2S)** |
 
-## 🚀 Roadmap & Backlog do Produto
+## ✨ Funcionalidades Core
 
-O Vita.AI foi desenhado para evoluir para um ERP Clínico completo. Abaixo, o planejamento priorizado para as próximas versões:
+* 🎙️ **Prontuário via Áudio:** Transcrição e estruturação clínica imediata (Anamnese/Evolução) enviada via WhatsApp.
+* 🧠 **IA Multimodal Nativa:** Utiliza o **Gemini 2.5 Flash** para processar áudio, texto e imagens de documentos em um único gateway.
+* 🆔 **Gestão de Identidade:** Unificação de registros por CPF e suporte a **Apelidos (Aliases)** para reconhecimento fonético.
+* 📂 **Histórico Clínico:** Timeline visual completa por paciente com resumos inteligentes.
+* 🔗 **Integração Story2Scale:** Endpoint dedicado para receber inputs de Chatbots externos.
 
-### 🔹 Expansão de Módulos (Já visíveis na Sidebar)
-Os seguintes módulos já possuem interface de acesso (botões "mock") e serão implementados na V2:
-- [ ] **📅 Agenda Inteligente:** Agendamento visual integrado com lembretes automáticos via WhatsApp.
-- [ ] **💰 Gestão Financeira:** Controle de fluxo de caixa, contas a pagar/receber e integração com convênios.
-- [ ] **📦 Estoque Preditivo:** Baixa automática de materiais (ex: resina, anestésico) baseada nos procedimentos extraídos pela IA do prontuário.
-- [ ] **📊 Relatórios BI:** Dashboards de produtividade e faturamento.
-- [ ] **⚙️ Configurações:** Ajustes de prompt da IA e preferências da clínica.
+## 🏗️ Arquitetura Consolidada
 
-### 🔹 Melhorias de Cadastro (CRM)
-- [ ] **Campos Estendidos:** Adição de RG, Órgão Emissor, Nome do Responsável, Convênio e Endereço Completo no cadastro do paciente.
-- [ ] **Upload de Documentos:** Anexo de fotos (raio-x) e PDFs ao prontuário.
+O projeto opera em containers Docker otimizados para deploy em instâncias AWS EC2 convencionais:
 
-### 🔹 Backlog Técnico (Escalabilidade)
-- [ ] **⚡ Arquitetura Assíncrona (Task Queue):** Implementação de **Celery + Redis** para desacoplar a API do processamento de IA.
-    * *Objetivo:* Impedir que o processamento de áudios longos bloqueie a navegação no Frontend ou o cadastro de pacientes (Non-blocking I/O).
-- [ ] **🔐 Autenticação:** Implementação de Login/Senha e Níveis de Acesso (Médico vs Secretária).
+| Serviço | Tech Stack | Função |
+| :--- | :--- | :--- |
+| **Backend** | Python 3.11 / FastAPI | Orquestração de negócio e integração com Gemini. |
+| **Frontend** | React / Vite / Tailwind v4 | Interface administrativa e gestão de pacientes. |
+| **Database** | PostgreSQL 15 | Persistência de dados clínicos e financeiros (vita_ai_db). |
+| **AI Gateway** | Gemini 2.5 Flash | Motor único para STT, LLM e OCR. |
 
-## 🏗️ Arquitetura (Microsserviços)
+## 🚀 Roadmap de Integração (V2)
 
-O projeto roda inteiramente em containers Docker:
+Com a fundação v1.1 concluída, o foco agora é a unificação dos módulos:
 
-| Serviço | Tecnologia | Função |
-|---------|------------|--------|
-| **Backend** | FastAPI / Python 3.11 | API REST, SQLAlchemy (Postgres), Alembic e LangChain. |
-| **Frontend** | React / Vite / Tailwind | Interface moderna (SPA) para gestão clínica. |
-| **AI Engine** | Ollama (Qwen 2.5) | Servidor de inferência local (LLM). |
-| **Database** | PostgreSQL 15 | Persistência relacional com suporte a JSONB. |
-| **Gateway** | WAHA | Conexão via socket com a API do WhatsApp. |
+- [ ] **💰 Módulo Financeiro:** Migração do motor *Finance Recon AI* para o diretório `/modules/finance`.
+- [ ] **🤖 Chatbot Whitelabel:** Unificação dos Tenants entre o Story2Scale e o Vita-AI.
+- [ ] **⚡ Task Queue:** Implementação de Celery + Redis para processamento assíncrono de grandes lotes de documentos.
+- [ ] **📅 Agenda:** Sincronização automática entre o chatbot e o calendário do médico.
 
-## 🛠️ Como Rodar (Ambiente de Desenvolvimento)
-
-### Pré-requisitos
-* Docker & Docker Compose
-* NVIDIA GPU (Recomendado para performance de transcrição)
-* 16GB+ RAM
-
-### Instalação
+## 🛠️ Como Rodar (AWS / Local)
 
 1.  **Configure o Ambiente:**
     ```bash
     cp .env.example .env
-    # Configure as credenciais de produção e chaves de API
+    # Adicione sua GEMINI_API_KEY no arquivo .env
     ```
 
 2.  **Inicie o Sistema:**
     ```bash
-    docker compose up -d --build
+    docker-compose up -d --build
     ```
 
-3.  **Acesse:**
-    * Frontend: `http://localhost:5173`
-    * Conecte o WhatsApp em `http://localhost:3000/dashboard`
+3.  **Migração (Opcional):**
+    Execute `python backend/scripts/migrate_data_v1.py` para mover dados de instalações v1.0 legadas.
 
 ---
-*© 2025 Vita.AI. Todos os direitos reservados. Uso não autorizado é proibido.*
+*© 2026 Vita-AI. Todos os direitos reservados. Uso não autorizado é proibido.*
